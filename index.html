@@ -8,6 +8,105 @@
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pop-up รูปภาพ</title>
+    <style>
+        /* 1. CSS จัดหน้าตา */
+        .popup-overlay {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* พื้นหลังดำโปร่งแสง */
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .popup-content {
+            position: relative;
+            background-color: transparent;
+            padding: 0;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .popup-content img {
+            max-width: 100%;
+            max-height: 85vh; /* ความสูงรูปไม่เกิน 85% ของจอ */
+            display: block;
+            border-radius: 8px;
+            border: 2px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        /* ปุ่มปิด (กากบาท) */
+        .close-btn {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 35px;
+            height: 35px;
+            background-color: #ff0000;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 10000;
+        }
+
+        .close-btn:hover {
+            background-color: #cc0000;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="imagePopup" class="popup-overlay">
+        <div class="popup-content">
+            <div class="close-btn" onclick="closePopup()">&times;</div>
+            
+            <img src="https://scontent.fbkk35-1.fna.fbcdn.net/v/t39.30808-6/500627892_1174175868087695_7204358532384139320_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=127cfc&_nc_ohc=rXvUR7wbTtUQ7kNvwEpJg81&_nc_oc=AdkSph_HDZyCXIRA2X_DpWremFcozxfCK2t8e7DTWT4SuPvYeRoHVh2Wn3yHa8ayyQ2dC5kCIqAY3NG51GoGhuUT&_nc_zt=23&_nc_ht=scontent.fbkk35-1.fna&_nc_gid=HxyPaRZ3p7MOaesH8Nsqzg&oh=00_AfryvoRN5VGTTR0zHQmP43Emz_AAt8lgaL9S2k9v_DAg3Q&oe=697EBEAD" alt="Promotion Image">
+        </div>
+    </div>
+
+    <script>
+        function closePopup() {
+            const popup = document.getElementById('imagePopup');
+            popup.style.opacity = '0'; // เอฟเฟกต์จางหาย
+            setTimeout(() => {
+                popup.classList.add('hidden'); // ซ่อนถาวรหลังจางหายเสร็จ
+            }, 300);
+        }
+
+        // คลิกพื้นที่ว่างสีดำเพื่อปิดได้ด้วย
+        document.getElementById('imagePopup').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePopup();
+            }
+        });
+    </script>
+
+</body>
+</html>  
 <body>
 
 <div class="container">
@@ -63,3 +162,4 @@
 
 </body>
 </html>
+
