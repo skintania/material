@@ -1,0 +1,149 @@
+/* style.css */
+
+/* import ฟอนต์สำรอง (Kanit) เผื่อเครื่อง user ไม่มี Sukhumvit Set */
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
+
+:root {
+  --primary-color: #e50914; /* แดงเข้ม */
+  --accent-color: #3ea6ff;  /* ฟ้า */
+  --bg-dark: #0f0f0f;       /* พื้นหลังหลัก */
+  --bg-panel: #1f1f1f;      /* พื้นหลังรายการ */
+  --bg-hover: #333333;      /* พื้นหลังตอนชี้เมาส์ */
+  --text-main: #ffffff;
+  --text-muted: #aaaaaa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  /* กำหนด Font Stack: ลองหา Sukhumvit Set ก่อน ถ้าไม่มีให้ใช้ Kanit */
+  font-family: 'Sukhumvit Set', 'Kanit', sans-serif;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg-dark);
+}
+
+/* --- Video Player --- */
+.player {
+  flex: 3;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  max-height: 100vh;
+  outline: none;
+}
+
+/* --- Catalog (Playlist) --- */
+.catalog {
+  flex: 1;
+  min-width: 300px;
+  max-width: 450px;
+  background-color: var(--bg-panel);
+  overflow-y: auto;
+  border-left: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  
+  /* ตัวนับสำหรับเลขหน้าชื่อคลิป */
+  counter-reset: video-counter;
+}
+
+/* Scrollbar Style */
+.catalog::-webkit-scrollbar {
+  width: 8px;
+}
+.catalog::-webkit-scrollbar-track {
+  background: var(--bg-panel);
+}
+.catalog::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+.catalog::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+/* --- List Items --- */
+.item {
+  padding: 15px 20px;
+  border-bottom: 1px solid #2a2a2a;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 300; /* Sukhumvit Set ตัวบางจะดู modern */
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* เลขหน้าชื่อคลิป */
+.item::before {
+  counter-increment: video-counter;
+  content: counter(video-counter) ". ";
+  margin-right: 12px;
+  font-weight: 500;
+  color: #666;
+  font-size: 0.9em;
+  min-width: 20px; 
+}
+
+.item:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
+  padding-left: 25px;
+}
+
+/* Active State */
+.item.active {
+  background-color: #2a2a2a;
+  color: var(--text-main);
+  font-weight: 500;
+  border-left: 4px solid var(--primary-color);
+}
+
+.item.active::before {
+  color: var(--primary-color);
+}
+
+/* --- Responsive (Mobile) --- */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .player {
+    flex: none;
+    height: 35vh; /* วิดีโอสูง 35% ของจอในมือถือ */
+    width: 100%;
+  }
+
+  .catalog {
+    flex: 1;
+    max-width: 100%;
+    border-left: none;
+    border-top: 1px solid #333;
+  }
+
+  body {
+    overflow: auto;
+  }
+}
