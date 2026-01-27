@@ -80,6 +80,42 @@
     </style>
 </head>
 <body>
+  <div class="sticky-popup">
+    <img src="popup.jpg" alt="ประกาศ">
+</div>
+
+<style>
+    .sticky-popup {
+        position: fixed;  /* สั่งให้ลอยติดหน้าจอ */
+        top: 20px;        /* ห่างจากขอบบน */
+        left: 20px;       /* ห่างจากขอบซ้าย */
+        width: 250px;     /* กำหนดความกว้างของกรอบ (ปรับเลขนี้ได้ตามต้องการ) */
+        
+        background-color: transparent; /* พื้นหลังใส */
+        z-index: 10000;   /* ให้ลอยทับทุกอย่าง */
+        
+        /* เพิ่มเงาเล็กน้อยให้รูปดูลอยเด่นขึ้น */
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    }
+
+    /* สั่งให้รูปยืดหดตามกรอบ */
+    .sticky-popup img {
+        width: 100%;      /* ให้รูปกว้างเต็มกรอบ 250px */
+        height: auto;     /* สูงตามสัดส่วนเดิม */
+        display: block;   /* ลบขอบขาวเกินๆ */
+        border-radius: 8px; /* ลบมุมให้มนสวยๆ (ถ้าชอบเหลี่ยมๆ ลบบรรทัดนี้ได้) */
+        border: 2px solid white; /* ใส่ขอบสีขาวให้รูป */
+    }
+
+    /* ปรับขนาดเมื่อดูในมือถือ (กันไม่ให้บังเนื้อหาเกินไป) */
+    @media (max-width: 768px) {
+        .sticky-popup {
+            width: 150px; /* ลดขนาดลงเหลือ 150px ในมือถือ */
+            top: 10px;
+            left: 10px;
+        }
+    }
+</style>
 
     <div id="imagePopup" class="popup-overlay">
         <div class="popup-content">
@@ -163,5 +199,6 @@
 
 </body>
 </html>
+
 
 
