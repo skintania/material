@@ -4,8 +4,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
 
 :root {
-  --primary-color: #ffa0e2; /* แดงเข้ม */
-  --accent-color: #3ea6ff;  /* ฟ้า */
+  --primary-color: #ffa0e2; /* ชมพู */
+  --accent-color: #7ba3b4;  /* ฟ้า */
   --bg-dark: #0f0f0f;       /* พื้นหลังหลัก */
   --bg-panel: #1f1f1f;      /* พื้นหลังรายการ */
   --bg-hover: #333333;      /* พื้นหลังตอนชี้เมาส์ */
