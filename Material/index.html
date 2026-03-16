@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Intania-Material</title>
 
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="cmt.css">
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="cmt.js" defer></script>
+
   <link rel="icon" href="../Assest/sk-cu.png" type="image/jpg">
 </head>
 <!DOCTYPE html>
@@ -79,6 +82,24 @@
         }
     </style>
 </head>
+
+<!-- Floating Button -->
+<div id="commentBtn">💬</div>
+
+<!-- Popup -->
+<div id="commentPopup" class="hidden">
+  <div class="popupBox">
+    <h3>ส่งคำถาม / แจ้งปัญหา</h3>
+    
+    <textarea id="commentText" placeholder="พิมพ์ข้อความที่นี่..."></textarea>
+    
+    <div class="popupActions">
+      <button onclick="sendComment()">ส่ง</button>
+      <button onclick="togglePopup()">ปิด</button>
+    </div>
+  </div>
+</div>
+
 <body>
   <div class="sticky-popup">
     <img src="../Assest/sk-cu.png" alt="เว็บนี้จัดทำโดยกุหลาบราชัน">

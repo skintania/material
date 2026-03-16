@@ -21,7 +21,27 @@
     @media (max-width:560px){.wrap{margin:20px;padding:16px}}
   </style>
   <link rel="icon" href="/Assest/sk-cu.png" type="image/jpg">
+  <link rel="stylesheet" href="/Assest/cmt.css">
+  <script src="/Assest/cmt.js" defer></script>
 </head>
+
+<!-- Floating Button -->
+<div id="commentBtn">💬</div>
+
+<!-- Popup -->
+<div id="commentPopup" class="hidden">
+  <div class="popupBox">
+    <h3>ส่งคำถาม / แจ้งปัญหา</h3>
+    
+    <textarea id="commentText" placeholder="พิมพ์ข้อความที่นี่..."></textarea>
+    
+    <div class="popupActions">
+      <button onclick="sendComment()">ส่ง</button>
+      <button onclick="togglePopup()">ปิด</button>
+    </div>
+  </div>
+</div>
+
 <body>
   <main class="wrap">
     <header>
