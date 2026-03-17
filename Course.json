@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Physics",
+    "description": "(Alpha Version) IN DEV",
+    "link": "/Physics/",
+    "linkText": "เข้าสู่ Physics →"
+  },
+  {
+    "title": "Calculus",
+    "description": "(ยังไม่พร้อม)",
+    "link": "/calculus/",
+    "linkText": "เข้าสู่ Calculus →"
+  },
+  {
+    "title": "Material",
+    "description": "คลิปอาจารย์",
+    "link": "/Material/",
+    "linkText": "เข้าสู่ Material →"
+  },
+  {
+    "title": "อื่นๆ / Coming Soon",
+    "description": "เผื่อเพิ่มคอร์สใหม่",
+    "link": "/#",
+    "linkText": "ดูทั้งหมด →"
+  }
+]
