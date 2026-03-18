@@ -5,6 +5,23 @@ allDropdowns.forEach(dropdown => {
     const gradeOptions = dropdown.querySelectorAll('.options-list li');
     const optionsList = dropdown.querySelector('.options-list');
 
+    let hideTimer;
+
+    const showOptions = () => {
+        clearTimeout(hideTimer);
+        optionsList.style.display = 'block';
+    };
+
+    const hideOptionsDelayed = () => {
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => {
+            optionsList.style.display = 'none';
+        }, 200);
+    };
+
+    dropdown.addEventListener('mouseenter', showOptions);
+    dropdown.addEventListener('mouseleave', hideOptionsDelayed);
+
     gradeOptions.forEach(option => {
         option.addEventListener('click', function() {
             const selectedGradeText = this.innerText;
@@ -14,10 +31,6 @@ allDropdowns.forEach(dropdown => {
             displayBox.setAttribute('data-value', selectedGradeValue);
             
             optionsList.style.display = 'none';
-
-            dropdown.addEventListener('mouseleave', function() {
-                optionsList.style.display = ''; 
-            }, { once: true });
         });
     });
 });
