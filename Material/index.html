@@ -2,7 +2,8 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Intania-Material</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intania-Material</title>
 
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="cmt.css">
@@ -11,181 +12,169 @@
   <script src="cmt.js" defer></script>
 
   <link rel="icon" href="../Assest/sk-cu.png" type="image/jpg">
+
+  <style>
+    /* 1. CSS จัดหน้าตา Image Popup */
+    .popup-overlay {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    .popup-content {
+      position: relative;
+      background-color: transparent;
+      padding: 0;
+      max-width: 90%;
+      max-height: 90%;
+    }
+
+    .popup-content img {
+      max-width: 100%;
+      max-height: 85vh;
+      display: block;
+      border-radius: 8px;
+      border: 2px solid white;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+
+    /* ปุ่มปิด (กากบาท) */
+    .close-btn {
+      position: absolute;
+      top: -15px;
+      right: -15px;
+      width: 35px;
+      height: 35px;
+      background-color: #ff0000;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      z-index: 10000;
+    }
+
+    .close-btn:hover {
+      background-color: #cc0000;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* 2. CSS สำหรับ Sticky Popup (โลโก้ลอย) */
+    .sticky-popup {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      width: 250px;
+      background-color: transparent;
+      z-index: 10000;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+    }
+
+    .sticky-popup img {
+      width: 50%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+      opacity: 0.5;
+      border: none;
+    }
+
+    @media (max-width: 768px) {
+      .sticky-popup {
+        width: 150px;
+        top: 10px;
+        left: 10px;
+      }
+    }
+  </style>
 </head>
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pop-up รูปภาพ</title>
-    <style>
-        /* 1. CSS จัดหน้าตา */
-        .popup-overlay {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8); /* พื้นหลังดำโปร่งแสง */
-            z-index: 9999;
-            opacity: 1;
-            transition: opacity 0.3s ease;
-        }
 
-        .popup-content {
-            position: relative;
-            background-color: transparent;
-            padding: 0;
-            max-width: 90%;
-            max-height: 90%;
-        }
+<body>
 
-        .popup-content img {
-            max-width: 100%;
-            max-height: 85vh; /* ความสูงรูปไม่เกิน 85% ของจอ */
-            display: block;
-            border-radius: 8px;
-            border: 2px solid white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
+  <div id="commentBtn">💬</div>
 
-        /* ปุ่มปิด (กากบาท) */
-        .close-btn {
-            position: absolute;
-            top: -15px;
-            right: -15px;
-            width: 35px;
-            height: 35px;
-            background-color: #ff0000;
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            z-index: 10000;
-        }
-
-        .close-btn:hover {
-            background-color: #cc0000;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-    </style>
-</head>
-
-<!-- Floating Button -->
-<div id="commentBtn">💬</div>
-
-<!-- Popup -->
-<div id="commentPopup" class="hidden">
-  <div class="popupBox">
-    <h3>ส่งคำถาม / แจ้งปัญหา</h3>
-    
-    <textarea id="commentText" placeholder="พิมพ์ข้อความที่นี่..."></textarea>
-    
-    <div class="popupActions">
-      <button onclick="sendComment()">ส่ง</button>
-      <button onclick="togglePopup()">ปิด</button>
+  <div id="commentPopup" class="hidden">
+    <div class="popupBox">
+      <h3>ส่งคำถาม / แจ้งปัญหา</h3>
+      <textarea id="commentText" placeholder="พิมพ์ข้อความที่นี่..."></textarea>
+      <div class="popupActions">
+        <button onclick="sendComment()">ส่ง</button>
+        <button onclick="togglePopup()">ปิด</button>
+      </div>
     </div>
   </div>
-</div>
 
-<body>
   <div class="sticky-popup">
     <img src="../Assest/sk-cu.png" alt="เว็บนี้จัดทำโดยกุหลาบราชัน">
-</div>
-
-<style>
-    .sticky-popup {
-        position: fixed;  /* สั่งให้ลอยติดหน้าจอ */
-        top: 10px;        /* ห่างจากขอบบน */
-        left: 10px;       /* ห่างจากขอบซ้าย */
-        width: 250px;     /* กำหนดความกว้างของกรอบ (ปรับเลขนี้ได้ตามต้องการ) */
-        
-        background-color: transparent; /* พื้นหลังใส */
-        z-index: 10000;   /* ให้ลอยทับทุกอย่าง */
-        
-        /* เพิ่มเงาเล็กน้อยให้รูปดูลอยเด่นขึ้น */
-        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
-    }
-
-    /* สั่งให้รูปยืดหดตามกรอบ */
-    .sticky-popup img {
-        width: 50%;      /* ให้รูปกว้างเต็มกรอบ 250px */
-        height: auto;     /* สูงตามสัดส่วนเดิม */
-        display: block;   /* ลบขอบขาวเกินๆ */
-        border-radius: 8px; /* ลบมุมให้มนสวยๆ (ถ้าชอบเหลี่ยมๆ ลบบรรทัดนี้ได้) */
-        opacity: 0.5;
-        border: none;
-    }
-
-    /* ปรับขนาดเมื่อดูในมือถือ (กันไม่ให้บังเนื้อหาเกินไป) */
-    @media (max-width: 768px) {
-        .sticky-popup {
-            width: 150px; /* ลดขนาดลงเหลือ 150px ในมือถือ */
-            top: 10px;
-            left: 10px;
-        }
-    }
-</style>
-
-    <!-- <div id="imagePopup" class="popup-overlay">
-        <div class="popup-content">
-            <div class="close-btn" onclick="closePopup()">&times;</div>
-            
-            <img src="https://scontent.fbkk35-1.fna.fbcdn.net/v/t39.30808-6/500627892_1174175868087695_7204358532384139320_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=127cfc&_nc_ohc=rXvUR7wbTtUQ7kNvwEpJg81&_nc_oc=AdkSph_HDZyCXIRA2X_DpWremFcozxfCK2t8e7DTWT4SuPvYeRoHVh2Wn3yHa8ayyQ2dC5kCIqAY3NG51GoGhuUT&_nc_zt=23&_nc_ht=scontent.fbkk35-1.fna&_nc_gid=HxyPaRZ3p7MOaesH8Nsqzg&oh=00_AfryvoRN5VGTTR0zHQmP43Emz_AAt8lgaL9S2k9v_DAg3Q&oe=697EBEAD" alt="Promotion Image">
-        </div>
-    </div> -->
-
-    <script>
-        function closePopup() {
-            const popup = document.getElementById('imagePopup');
-            popup.style.opacity = '0'; // เอฟเฟกต์จางหาย
-            setTimeout(() => {
-                popup.classList.add('hidden'); // ซ่อนถาวรหลังจางหายเสร็จ
-            }, 300);
-        }
-
-        // คลิกพื้นที่ว่างสีดำเพื่อปิดได้ด้วย
-        document.getElementById('imagePopup').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closePopup();
-            }
-        });
-    </script>
-
-</body>
-</html>  
-<body>
+  </div>
 
 <div class="container">
   <div class="player">
-    <video id="videoPlayer" controls></video>
+    <video id="video" controls></video>
   </div>
   <div class="catalog" id="catalog"></div>
 </div>
 
-<script src="player.js"></script> 
+<script>
+  // ... (ส่วน Script เดิมของคุณ ไม่ต้องแก้) ...
+  const video = document.getElementById('video');
+  const catalog = document.getElementById('catalog');
+  let hls;
+
+  function playVideo(url, el) {
+    document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+
+    if (hls) hls.destroy();
+
+    if (Hls.isSupported()) {
+      hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
+    }
+
+    video.play();
+  }
+
+  fetch('videos.json')
+    .then(res => res.json())
+    .then(videos => {
+      videos.forEach((v, index) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.textContent = v.title;
+        div.onclick = () => playVideo(v.url, div);
+        catalog.appendChild(div);
+
+        if (index === 0) {
+          // setTimeout(() => playVideo(v.url, div), 300); // ปิด autoplay ชั่วคราวเพื่อให้โหลดหน้าเสร็จก่อน
+          div.classList.add('active'); 
+        }
+      });
+    })
+    .catch(err => {
+      console.error('โหลด JSON ไม่ได้', err);
+    });
+</script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
