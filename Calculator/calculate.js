@@ -33,12 +33,17 @@ document.getElementById('calbutton').addEventListener('click', function() {
         return;
     }
 
-    fetch('weight.json')
-        .then(res => {
+    Promise.all([
+        fetch('weight.json').then(res => {
             if (!res.ok) throw new Error('ไม่สามารถโหลดไฟล์น้ำหนักได้');
             return res.json();
+        }),
+        fetch('data.json').then(res => {
+            if (!res.ok) throw new Error('ไม่สามารถโหลดข้อมูลคะแนนย้อนหลังได้');
+            return res.json();
         })
-        .then(weightData => {
+    ])
+        .then(([weightData, historyData]) => {
             const weights = weightData[departCode];
             if (!weights) throw new Error(`ไม่พบข้อมูลน้ำหนักสำหรับภาค "${departCode}"`);
 
@@ -56,12 +61,54 @@ document.getElementById('calbutton').addEventListener('click', function() {
             });
 
             const gpax = totalWeight > 0 ? weightedScore / totalWeight : 0;
-            const percent = totalWeight > 0 ? (weightedScore / (totalWeight * 4)) * 100 : 0;
+
+            // --- Calculate percentage based on historical admission score range (normalized to 0-100) ---
+            // We map your weighted score into the range [minScore, maxScore] observed in history.
+            const yearScorePercents = Object.values(historyData)
+                .map(yearObj => {
+                    const deptInfo = yearObj[departCode];
+                    if (!deptInfo) return null;
+
+                    const maxScore = Number(deptInfo.maxScore ?? 0);
+                    const minScore = Number(deptInfo.minScore ?? 0);
+                    const fullScore = Number(deptInfo.fullScore ?? 0);
+
+                    if (!fullScore || !Number.isFinite(maxScore) || !Number.isFinite(minScore)) return null;
+
+                    return {
+                        minPercent: (minScore / fullScore) * 100,
+                        maxPercent: (maxScore / fullScore) * 100,
+                    };
+                })
+                .filter(v => v !== null);
+
+            const minPercent = yearScorePercents.length ? Math.min(...yearScorePercents.map(v => v.minPercent)) : 0;
+            const maxPercent = yearScorePercents.length ? Math.max(...yearScorePercents.map(v => v.maxPercent)) : 0;
+
+            // Convert the computed weighted GPA into a 0-100 percent score
+            const normalizedPercent = totalWeight > 0 ? (weightedScore / (totalWeight * 4)) * 100 : 0;
+
+            let percent = 0;
+            if (yearScorePercents.length && maxPercent > minPercent) {
+                if (normalizedPercent >= maxPercent) {
+                    percent = 100;
+                } else if (normalizedPercent <= minPercent) {
+                    percent = 0;
+                } else {
+                    percent = ((normalizedPercent - minPercent) / (maxPercent - minPercent)) * 100;
+                }
+            } else {
+                // fallback: percent of max possible score
+                percent = normalizedPercent;
+            }
+
+            percent = Math.max(0, Math.min(100, percent));
 
             const chanceTextEl = document.querySelector('.chance-text');
             const circleEl = document.querySelector('.chance-circle');
             const scoreTextEls = document.querySelectorAll('.score-text');
             const statusEl = document.querySelector('.status-message');
+            const deptTableBody = document.querySelector('#deptChanceTable tbody');
 
             if (chanceTextEl) chanceTextEl.innerText = `${percent.toFixed(2)} %`;
             if (circleEl) circleEl.style.setProperty('--percentage', `${percent.toFixed(2)}%`);
@@ -75,22 +122,114 @@ document.getElementById('calbutton').addEventListener('click', function() {
             }
 
             if (statusEl) {
-                let message = "Let's try again next year";
+                let message = 'Not any chance';
                 let statusClass = 'error';
-                if (percent >= 90) {
-                    message = 'Excellent — you are on track!';
+
+                if (percent >= 100) {
+                    message = 'Guaranteed!';
                     statusClass = 'success';
-                } else if (percent >= 70) {
-                    message = 'Good job — keep it up!';
+                } else if (percent >= 80) {
+                    message = 'Very high chance';
+                    statusClass = 'success';
+                } else if (percent >= 60) {
+                    message = 'High chance';
                     statusClass = 'warning';
-                } else if (percent >= 50) {
-                    message = 'Almost there — keep going!';
+                } else if (percent >= 40) {
+                    message = 'Could try';
                     statusClass = 'warning';
+                } else if (percent >= 20) {
+                    message = 'Low chance';
+                    statusClass = 'error';
+                } else if (percent > 0) {
+                    message = 'Extremely low chance';
+                    statusClass = 'error';
+                } else {
+                    message = 'No chance';
+                    statusClass = 'error';
                 }
 
                 statusEl.classList.remove('error', 'warning', 'success');
                 statusEl.classList.add(statusClass);
                 statusEl.innerText = message;
+            }
+
+            // --- Update department table ---
+            if (deptTableBody) {
+                deptTableBody.innerHTML = '';
+
+                const deptCodes = Object.keys(weightData);
+                deptCodes.sort();
+
+                deptCodes.forEach(code => {
+                    const weightsForDept = weightData[code];
+                    if (!weightsForDept) return;
+
+                    // compute weighted score for this department
+                    let deptTotalWeight = 0;
+                    let deptWeightedScore = 0;
+                    gradesData.forEach(({ subject, grade }) => {
+                        const w = weightsForDept[subject];
+                        if (typeof w === 'number') {
+                            deptTotalWeight += w;
+                            deptWeightedScore += grade * w;
+                        }
+                    });
+
+                    const deptNormalizedPercent = deptTotalWeight > 0 ? (deptWeightedScore / (deptTotalWeight * 4)) * 100 : 0;
+
+                    const historyPercents = Object.values(historyData)
+                        .map(yearObj => {
+                            const deptInfo = yearObj[code];
+                            if (!deptInfo) return null;
+                            const maxScore = Number(deptInfo.maxScore ?? 0);
+                            const minScore = Number(deptInfo.minScore ?? 0);
+                            const fullScore = Number(deptInfo.fullScore ?? 0);
+                            if (!fullScore || !Number.isFinite(maxScore) || !Number.isFinite(minScore)) return null;
+                            return {
+                                minPercent: (minScore / fullScore) * 100,
+                                maxPercent: (maxScore / fullScore) * 100,
+                            };
+                        })
+                        .filter(v => v !== null);
+
+                    const deptMinPercent = historyPercents.length ? Math.min(...historyPercents.map(v => v.minPercent)) : 0;
+                    const deptMaxPercent = historyPercents.length ? Math.max(...historyPercents.map(v => v.maxPercent)) : 0;
+
+                    let deptPercent = 0;
+                    if (historyPercents.length && deptMaxPercent > deptMinPercent) {
+                        if (deptNormalizedPercent >= deptMaxPercent) {
+                            deptPercent = 100;
+                        } else if (deptNormalizedPercent <= deptMinPercent) {
+                            deptPercent = 0;
+                        } else {
+                            deptPercent = ((deptNormalizedPercent - deptMinPercent) / (deptMaxPercent - deptMinPercent)) * 100;
+                        }
+                    } else {
+                        deptPercent = deptNormalizedPercent;
+                    }
+
+                    deptPercent = Math.max(0, Math.min(100, deptPercent));
+
+                    const row = document.createElement('tr');
+
+                    // Choose the most recent year that includes this department (so GE/others show correct names)
+                    const yearKeys = Object.keys(historyData).sort();
+                    const yearWithDept = yearKeys.slice().reverse().find(y => historyData[y]?.[code]);
+                    const deptInfo = yearWithDept ? historyData[yearWithDept][code] : null;
+
+                    const name = deptInfo?.department || code;
+                    const minScore = deptInfo?.minScore ?? '-';
+                    const maxScore = deptInfo?.maxScore ?? '-';
+
+                    row.innerHTML = `
+                        <td>${name} (${code})</td>
+                        <td>${minScore}</td>
+                        <td>${maxScore}</td>
+                        <td class="chance">${deptPercent.toFixed(1)}%</td>
+                    `;
+
+                    deptTableBody.appendChild(row);
+                });
             }
         })
         .catch(err => {

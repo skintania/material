@@ -53,10 +53,6 @@
     color: #333;
 }
 
-.custom-dropdown:hover .options-list {
-    display: block;
-}
-
 .options-list li {
     padding: 8px 10px;
     cursor: pointer;
@@ -203,4 +199,31 @@
     .score-details {
         text-align: center; /* Centers the text on phones */
     }
+}
+
+#deptChanceTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 0.95rem;
+}
+
+#deptChanceTable th,
+#deptChanceTable td {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    padding: 10px 12px;
+    text-align: center;
+}
+
+#deptChanceTable th {
+    background-color: rgba(59, 130, 246, 0.35);
+    color: #f8fafc; /* light text for readability */
+}
+
+#deptChanceTable tbody tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+#deptChanceTable td.chance {
+    font-weight: 700;
 }
