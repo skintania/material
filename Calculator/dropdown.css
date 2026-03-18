@@ -191,6 +191,51 @@
 }
 
 @media (max-width: 600px) {
+    body {
+        font-size: 0.95rem;
+    }
+
+    .wrap {
+        padding: 16px;
+    }
+
+    .navbar a {
+        padding: 12px 10px;
+        font-size: 0.9rem;
+    }
+
+    .card {
+        padding: 14px;
+    }
+
+    .grade-row,
+    .depart-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .grade-row h4,
+    .depart-row h4 {
+        width: 100%;
+        text-align: left;
+    }
+
+    .custom-dropdown {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .selected-option {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .options-list {
+        min-width: 100%;
+        width: 100%;
+    }
+
     .score-row {
         flex-direction: column; /* Stacks them vertically on phones */
         text-align: center;
