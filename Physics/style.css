@@ -26,6 +26,15 @@ body {
   overflow: hidden;
 }
 
+body {
+  margin: 0;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  /* กำหนด Font Stack: ลองหา Sukhumvit Set ก่อน ถ้าไม่มีให้ใช้ Kanit */
+  font-family: 'Sukhumvit Set', 'Kanit', sans-serif;
+  overflow: hidden;
+}
+
 .container {
   display: flex;
   height: 100vh;

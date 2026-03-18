@@ -1,0 +1,21 @@
+{
+  "content": null,
+  "embeds": [
+    {
+      "title": "Skintania",
+      "description": "Alert from : [Physics](https://skintania.github.io/Material/)",
+      "color": 16734407,
+      "fields": [
+        {
+          "name": "Message",
+          "value": ""
+        }
+      ],
+      "footer": {
+        "text": "Skintania-Project",
+        "icon_url": "https://skintania.github.io/Assest/sk-cu.png"
+      }
+    }
+  ],
+  "attachments": []
+}

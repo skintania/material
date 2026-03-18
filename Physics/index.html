@@ -9,6 +9,9 @@
     <link rel="icon" href="../Assest/sk-cu.png">
     <link rel="stylesheet" href="style.css">
 
+    <link rel="stylesheet" href="cmt.css">
+    <script src="cmt.js" defer></script>
+
     <style>
         body {
             margin: 0;
@@ -84,6 +87,23 @@
         }
     </style>
 </head>
+
+<!-- Floating Button -->
+<div id="commentBtn">💬</div>
+
+<!-- Popup -->
+<div id="commentPopup" class="hidden">
+  <div class="popupBox">
+    <h3>ส่งคำถาม / แจ้งปัญหา</h3>
+    
+    <textarea id="commentText" placeholder="พิมพ์ข้อความที่นี่..."></textarea>
+    
+    <div class="popupActions">
+      <button onclick="sendComment()">ส่ง</button>
+      <button onclick="togglePopup()">ปิด</button>
+    </div>
+  </div>
+</div>
 
 <body>
     <div class="sticky-popup">
