@@ -12,56 +12,71 @@
     header{display:flex;align-items:center;justify-content:space-between;gap:16px}
     h1{margin:0;font-size:1.6rem}
 
-.navbar {
-  background: rgba(15, 23, 36, 0.8);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 30px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
+    /* สไตล์สำหรับ Navbar */
+    .navbar {
+      background: rgba(15, 23, 36, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-.navbar ul {
-  display: flex;
-  justify-content: center;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  overflow-x: auto;
-  white-space: nowrap;
-}
+    .navbar ul {
+      display: flex;
+      justify-content: center;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
 
-.navbar a {
-  padding: 16px 20px;
-  display: inline-block;
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 0.95rem;
-  transition: 0.3s;
-}
+    .navbar a {
+      padding: 16px 20px;
+      display: inline-block;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: 0.3s;
+    }
 
-.navbar a:hover {
-  color: var(--accent);
-  background: rgba(59, 130, 246, 0.1);
-}
+    .navbar a:hover {
+      color: var(--accent);
+      background: rgba(59, 130, 246, 0.1);
+    }
 
-.btn {
-  display: block; /* เปลี่ยนให้ปุ่มกว้างพอดีกับการ์ด */
-  text-align: center;
-  margin-top: 12px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: #fff;
-  text-decoration: none;
-  font-weight: 600;
-  transition: transform 0.2s;
-}
+    /* 📌 สไตล์สำหรับแบนเนอร์ที่เพิ่มเข้ามาใหม่ */
+    .banner {
+      width: 100%;
+      height: auto;
+      max-height: 300px; /* ปรับความสูงสูงสุดได้ตามต้องการ */
+      object-fit: cover; /* ทำให้รูปไม่เบี้ยวเวลาถูกบีบ */
+      border-radius: 12px;
+      margin-bottom: 24px;
+      box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
 
-.btn:hover {
-  transform: scale(1.05);
-}
+    /* สไตล์ปุ่มและการ์ด */
+    .btn {
+      display: block; 
+      text-align: center;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+    }
+    
     p.lead{margin:6px 0 0;color:var(--muted)}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:28px}
     .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.06));padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03);transition:transform .18s,box-shadow .18s}
@@ -77,25 +92,24 @@
   <script src="/loadCourse.js" defer></script>
 </head>
 
-<!-- Floating Button -->
-<div id="commentBtn">💬</div>
+<body>
+  <div id="commentBtn">💬</div>
 
-<!-- Popup -->
-<div id="commentPopup" class="hidden">
-  <div class="popupBox">
-    <h3>ส่งคำถาม / แจ้งปัญหา</h3>
-    
-    <textarea id="commentText" placeholder="พิมพ์ข้อความที่นี่..."></textarea>
-    
-    <div class="popupActions">
-      <button onclick="sendComment()">ส่ง</button>
-      <button onclick="togglePopup()">ปิด</button>
+  <div id="commentPopup" class="hidden">
+    <div class="popupBox">
+      <h3>ส่งคำถาม / แจ้งปัญหา</h3>
+      <textarea id="commentText" placeholder="พิมพ์ข้อความที่นี่..."></textarea>
+      <div class="popupActions">
+        <button onclick="sendComment()">ส่ง</button>
+        <button onclick="togglePopup()">ปิด</button>
+      </div>
     </div>
   </div>
-</div>
 
-<body>
   <main class="wrap">
+    
+    <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1100&h=300" alt="SkIntania Banner" class="banner">
+
     <header>
       <div>
         <h1>SkIntania — StudyKits</h1>
@@ -108,7 +122,6 @@
     </header>
     <br>
 
-    <!-- Navigation Bar-->
     <nav class="navbar">
       <ul>
         <li><a href="/">หน้าแรก</a></li>
@@ -120,13 +133,12 @@
     </nav>
 
     <section id="coursesGrid" class="grid" aria-label="Courses">
-
-    </section>
+        </section>
 
     <footer>
       <p>เรื่องแจ้ง น่ารู้</p>
       <ul style="color:var(--muted)">
-        <li>วิชา Material ดูคลิป Lecture 14 - 16 ได้ นอกจากนั้นกำลังอัปขึ้น cloudfare</li>
+        <li>วิชา Material ดูคลิป Lecture 14 - 16 ได้ นอกจากนั้นกำลังอัปขึ้น Cloudflare</li>
         <li>วิชา Physics ลงคลิปถึง Midterm 1</li>
         <li>อันอื่นรอก่อนนๆ</li>
       </ul>
