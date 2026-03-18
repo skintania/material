@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,7 +45,7 @@
       display: block;
       border-radius: 8px;
       border: 2px solid white;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
     }
 
     /* ปุ่มปิด (กากบาท) */
@@ -64,7 +65,7 @@
       border-radius: 50%;
       cursor: pointer;
       border: 2px solid white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
       z-index: 10000;
     }
 
@@ -125,56 +126,15 @@
     <img src="../Assest/sk-cu.png" alt="เว็บนี้จัดทำโดยกุหลาบราชัน">
   </div>
 
-<div class="container">
-  <div class="player">
-    <video id="video" controls></video>
+  <div class="container">
+    <div class="player">
+      <video id="videoPlayer" controls></video>
+    </div>
+    <div class="catalog" id="catalog"></div>
   </div>
-  <div class="catalog" id="catalog"></div>
-</div>
 
-<script>
-  // ... (ส่วน Script เดิมของคุณ ไม่ต้องแก้) ...
-  const video = document.getElementById('video');
-  const catalog = document.getElementById('catalog');
-  let hls;
-
-  function playVideo(url, el) {
-    document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-
-    if (hls) hls.destroy();
-
-    if (Hls.isSupported()) {
-      hls = new Hls();
-      hls.loadSource(url);
-      hls.attachMedia(video);
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = url;
-    }
-
-    video.play();
-  }
-
-  fetch('videos.json')
-    .then(res => res.json())
-    .then(videos => {
-      videos.forEach((v, index) => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.textContent = v.title;
-        div.onclick = () => playVideo(v.url, div);
-        catalog.appendChild(div);
-
-        if (index === 0) {
-          // setTimeout(() => playVideo(v.url, div), 300); // ปิด autoplay ชั่วคราวเพื่อให้โหลดหน้าเสร็จก่อน
-          div.classList.add('active'); 
-        }
-      });
-    })
-    .catch(err => {
-      console.error('โหลด JSON ไม่ได้', err);
-    });
-</script>
+  <script src="player.js"></script>
 
 </body>
+
 </html>
