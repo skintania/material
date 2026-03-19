@@ -5,42 +5,42 @@ const popup = document.getElementById("commentPopup")
 
 btn.onclick = togglePopup
 
-function togglePopup(){
-popup.classList.toggle("hidden")
+function togglePopup() {
+    popup.classList.toggle("hidden")
 }
 
-async function sendComment(){
+async function sendComment() {
 
-const text = document.getElementById("commentText").value
+    const text = document.getElementById("commentText").value
 
-if(!text){
-alert("Leave the comment here")
-return
-}
+    if (!text) {
+        alert("Leave the comment here")
+        return
+    }
 
-const res = await fetch("/Assest/emb.json")
-const data = await res.json()
+    const res = await fetch("/Assest/emb.json")
+    const data = await res.json()
 
 
 
-data.embeds[0].fields[0].value = text
+    data.embeds[0].fields[0].value = text
 
-fetch(webhookURL,{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify(data)
-})
+    fetch(webhookURL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    })
 
-.then(()=>{
-alert("Comment Sending successfully")
-document.getElementById("commentText").value=""
-togglePopup()
-})
+        .then(() => {
+            alert("Comment Sending successfully")
+            document.getElementById("commentText").value = ""
+            togglePopup()
+        })
 
-.catch(()=>{
-alert("Message Error")
-})
+        .catch(() => {
+            alert("Message Error")
+        })
 
 }
