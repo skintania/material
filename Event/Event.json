@@ -1,0 +1,23 @@
+{
+    "1":{
+        "type":"Poll",
+        "header":"ใครจะชนะการเลือกตั้งประธานปี 2",
+        "description":"เลือกได้แค่คนเดียวเท่านั้น",
+        "choice":["เอิง", "พี่แมน"],
+        "vote_score":[0,0],
+        "imgLink":["/Event/Asset/IMG_9894.jpg", "/Event/Asset/IMG_9895.jpg"]
+    },
+    "2":{
+        "type":"Activity",
+        "header":"เตะบอลกันไหม",
+        "description":"สถานที่: bbb futsal สนามใหญ่ \nวันที่: 27 Mar 2026\nเวลา: 17:00-19:30 น. \nจัดโดย: OSK143",
+        "participants":0,
+        "imgLink":"/Event/Asset/IMG_5241.JPG"
+    },
+    "3":{
+        "type":"Anouncement",
+        "header":"ปิดปรับปรุงระบบ",
+        "description":"จะปิดปรับปรุงระบบในวันพรุ่งนี้ตั้งแต่ 9 โมงเช้าถึง 5 โมงเย็น",
+        "imgLink":"/Event/Asset/IMG_9574.JPG"
+    }
+}
