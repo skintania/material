@@ -5,6 +5,34 @@ header{
     gap:16px
 }
 
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* ปรับขนาดรูป */
+.header-logo {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.header-text h1 {
+    margin: 0;
+}
+
+.header-text p {
+    margin: 5px 0 0 0;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
 /* สไตล์สำหรับ Navbar */
 .navbar {
     background: rgba(15, 23, 36, 0.8);
