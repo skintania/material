@@ -7,6 +7,16 @@
 </head>
 
 <body>
+    <div class="lang-toggle">
+        <span>TH</span>
+
+        <label class="switch">
+            <input type="checkbox" id="langSwitch">
+            <span class="slider"></span>
+        </label>
+
+        <span>ISE</span>
+    </div>
 
     <h1 class="title"><span class="pink">General</span> <span class="blue">Physics</span></h1>
 
@@ -15,10 +25,10 @@
             <h2>Physics I</h2>
             <h4> File Below </h4>
             <div class="file-grid">
-                <div class="fileP" onclick="">
+                <div class="fileP" onclick="goTo('sheetdata/tempPhy1Midterm.html')">
                     <p>File : Midterm</p>                    
                 </div>
-                <div class="fileB" onclick="">
+                <div class="fileB" onclick="goTo('sheetdata/tempPhy1Final.html')">
                     <p>File : Final</p>                    
                 </div>
             </div>
@@ -42,27 +52,11 @@
         <div class="card" onclick="goTo('lab1')">
             <h2>Lab Physics I</h2>
             <h4> File Below </h4>
-            <div class="file-grid">
-                <div class="fileP" onclick="">
-                    <p>File : Midterm</p>                    
-                </div>
-                <div class="fileB" onclick="">
-                    <p>File : Final</p>                    
-                </div>
-            </div>
         </div>
 
         <div class="card" onclick="goTo('lab2')">
             <h2>Lab Physics II</h2>
             <h4> File Below </h4>
-            <div class="file-grid">
-                <div class="fileP" onclick="">
-                    <p>File : Midterm</p>                    
-                </div>
-                <div class="fileB" onclick="">
-                    <p>File : Final</p>                    
-                </div>
-            </div>
         </div>
     </div>
 
