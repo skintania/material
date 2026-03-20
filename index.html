@@ -6,39 +6,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Skintania</title>
   <style>
-    /* สไตล์พื้นหลังที่ทับทั้งหน้าจอ */
-.modal {
-    display: flex; /* ใช้ flex เพื่อจัดกึ่งกลาง */
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.7); /* พื้นหลังดำโปร่งแสง */
-    justify-content: center;
-    align-items: center;
-}
-
-/* กล่องเนื้อหา */
-.modal-content {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    position: relative;
-    max-width: 80%;
-}
-
-/* ปุ่มปิด */
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    color: #333;
-}
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
 
     :root {
@@ -148,17 +115,10 @@
 </head>
 
 <body>
-    <div id="imagePopup" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closePopup()">&times;</span>
-            <img src="https://images.workpointtoday.com/workpointtv/2024/07/02174241/Genwit-3-%E0%B8%81.%E0%B8%84-13_0-scaled.jpg" alt="Promotion" style="width:100%">
-        </div>
-    </div>
 
   <comment-widget></comment-widget>
 
   <main class="wrap">
-
     <img
       src="https://scontent.fbkk9-2.fna.fbcdn.net/v/t1.6435-9/76948988_2237161509746072_4194807550555717632_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=f798df&_nc_ohc=i28II4h4BMYQ7kNvwGH7UiC&_nc_oc=AdlmMGcYnNuF5MFDEtiHVqgebqjztKrtam18lD19tQocAeBnJW4MOYaYYP7rPm5xXPEAabfYeb2Hj0OQpDfJUP5L&_nc_zt=23&_nc_ht=scontent.fbkk9-2.fna&_nc_gid=QWERT6qcDKa2bwL63M6NLA&_nc_ss=8&oh=00_AfwMRQcF_eERVjJzv7t2TIFadhFy0AOlPmIzt8_cpLk8pQ&oe=69E20ED0"
       alt="SkIntania Banner" class="banner">
@@ -179,11 +139,6 @@
       </ul>
     </footer>
   </main>
-  <script>
-        function closePopup() {
-            document.getElementById("imagePopup").style.display = "none";
-        }
-    </script>
 </body>
 
 </html>
