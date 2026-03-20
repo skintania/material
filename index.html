@@ -105,10 +105,10 @@
       font-size: 0.9rem
     }
   </style>
-  
+
   <link rel="stylesheet" href="/Assest/cmt.css">
+  <link rel="stylesheet" href="/style.css">
   <script src="/Assest/cmt.js" defer></script>
-  <script src="/loadCourse.js" defer></script>
 
   <script src="/Template/component.js" defer></script>
 
@@ -126,7 +126,124 @@
     <site-header page-title="Home" page-desc="หน้าแรก">
     </site-header>
 
-    <section id="coursesGrid" class="grid" aria-label="Courses">
+    <section id="coursesStack" class="card-stack" aria-label="Courses">
+
+      <article class="fade-card">
+        <div class="fade-card-content">
+          <h2>ยินดีต้อนรับเข้าสู่ SkIntania</h2>
+          <p>เว็บไซต์สำหรับนักเรียนในเครือสวนกุหลาบที่ได้เข้าเรียนที่ คณะวิศวกรรมศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
+            เพื่อให้มีความพร้อมก่อนที่จะเข้าเรียนจริงๆ</p>
+          <div>
+            <a href="/" class="btn" style="display: inline-block;">ไปที่หน้าแรก</a>
+          </div>
+        </div>
+        <div class="fade-card-image-wrapper">
+          <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=800&auto=format&fit=crop"
+            alt="University Campus">
+        </div>
+      </article>
+
+      <article class="fade-card">
+        <div class="fade-card-content">
+          <h2>คอร์สเรียน</h2>
+          <p>สถานที่ที่เก็บรวบรวมคลิปการสอนในรายวิชาต่างๆ ให้วัยรุ่น OSK CU Intania ได้มาเรียนเตรียมความพร้อมก่อนสอบกัน
+          </p>
+          <div>
+            <a href="/Course/" class="btn" style="display: inline-block;">ไปที่คอร์สเรียน</a>
+          </div>
+        </div>
+        <div class="fade-card-image-wrapper">
+          <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop"
+            alt="Online Course">
+        </div>
+      </article>
+
+      <article class="fade-card">
+        <div class="fade-card-content">
+          <h2>สื่อการเรียน</h2>
+          <p>สถานที่ที่จัดเก็บรวบรวมไฟล์การเรียนต่างๆของพี่ๆ ไว้ให้มาโหลด แล้วไปเรียนกันก่อน</p>
+          <div>
+            <a href="/CourseMaterial/" class="btn" style="display: inline-block;">ไปที่ SK Drive</a>
+          </div>
+        </div>
+        <div class="fade-card-image-wrapper">
+          <img src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop"
+            alt="Study Materials">
+        </div>
+      </article>
+
+      <article class="fade-card">
+        <div class="fade-card-content">
+          <h2>คำนวณระยะแห่งความฝัน</h2>
+          <p>เครื่องคำนวณเกรด เพื่อหาแต้มและความเป็นไปได้ของการเข้าภาควิชาต่างๆ โดยเฉพาะเด็กภาครวม ปี 1 ที่ได้ใช้แน่ๆ
+          </p>
+          <div>
+            <a href="/Calculator/" class="btn" style="display: inline-block;">ไปคำนวณ</a>
+          </div>
+        </div>
+        <div class="fade-card-image-wrapper">
+          <img src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=800&auto=format&fit=crop"
+            alt="Calculator and Grades">
+        </div>
+      </article>
+
+      <article class="fade-card">
+        <div class="fade-card-content">
+          <h2>คำแนะนำรายวิชา</h2>
+          <p>คำแนะนำที่พี่ต้องการจะบอกกับน้องว่าต้องระวังเรื่องอะไรบ้าง และมีคะแนนมิดเทอมของปีก่อนๆ</p>
+          <div>
+            <a href="/Advice/" class="btn" style="display: inline-block;">รับคำแนะนำ</a>
+          </div>
+        </div>
+        <div class="fade-card-image-wrapper">
+          <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop"
+            alt="Advice and Planning">
+        </div>
+      </article>
+
+      <article class="fade-card">
+        <div class="fade-card-content">
+          <h2>กิจกรรม</h2>
+          <p>ไทม์ไลน์กิจกรรมสำหรับปี 1 คณะวิศวกรรมศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย หรือจะมีกิจกรรมอื่นๆนอกคณะที่น่าสนใจ
+            หรือกิจกรรมที่สาวๆเยอะ</p>
+          <div>
+            <a href="/Activity/" class="btn" style="display: inline-block;">ไปดูกิจกรรม</a>
+          </div>
+        </div>
+        <div class="fade-card-image-wrapper">
+          <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=800&auto=format&fit=crop"
+            alt="University Activities and Events">
+        </div>
+      </article>
+
+      <article class="fade-card">
+        <div class="fade-card-content">
+          <h2>ลงทะเบียนพบปะ</h2>
+          <p>หากเหงาหรือต้องการจะร่วมกิจกรรมของ OSK CU Intania สามารถไปลงทะเบียนได้ที่นี่
+            หรือร่วมสนุกโหวตโพลที่กำลังเป็นประเด็นอยู่ ณ ตอนนี้</p>
+          <div>
+            <a href="/Event/" class="btn" style="display: inline-block;">ไปร่วมสนุก</a>
+          </div>
+        </div>
+        <div class="fade-card-image-wrapper">
+          <img src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&w=800&auto=format&fit=crop"
+            alt="Meeting and Events">
+        </div>
+      </article>
+
+      <article class="fade-card">
+        <div class="fade-card-content">
+          <h2>เกี่ยวกับเรา</h2>
+          <p>อยากรู้ตำนาน OSK143 ไหม ถ้าอยากรู้ก็ลองมาอ่านได้ที่นี่ และมาสานต่อตำนานไปด้วยกัน!</p>
+          <div>
+            <a href="/AboutUs/" class="btn" style="display: inline-block;">อ่านตำนาน</a>
+          </div>
+        </div>
+        <div class="fade-card-image-wrapper">
+          <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=800&auto=format&fit=crop"
+            alt="Brotherhood and History">
+        </div>
+      </article>
     </section>
 
     <footer>

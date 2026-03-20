@@ -3,7 +3,7 @@
 async function loadCourses() {
     console.log('Starting to load courses...');
 try {
-    const response = await fetch('Course.json'); // Adjust path if you put it in Assest/
+    const response = await fetch('/Course/Course.json'); // Adjust path if you put it in Assest/
     console.log('Fetch response:', response);
     const courses = await response.json();
     console.log('Courses loaded:', courses);

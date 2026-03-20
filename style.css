@@ -1,0 +1,100 @@
+/* fade-cards.css */
+
+.card-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-top: 28px;
+  position: relative;
+}
+
+.fade-card {
+  display: flex;
+  flex-direction: row;
+  background: var(--card, #0b1220); /* Uses your root variable */
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.8);
+  
+  /* STACKING EFFECT: Makes cards stack on top of each other as you scroll */
+  position: relative;
+  top: 32px; 
+  
+  /* Optional: Adds a slight top margin based on child order to make the stack look layered */
+  transition: transform 0.3s ease;
+}
+
+.fade-card-content {
+  flex: 1.2; /* Takes up slightly more space than the image */
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 2;
+  
+  /* Ensures the text area stays solid and blends seamlessly into the image fade */
+  background: linear-gradient(to right, var(--card, #0b1220) 80%, transparent 100%);
+}
+
+.fade-card-content h2 {
+  margin: 0 0 12px;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.fade-card-content p {
+  margin: 0 0 24px;
+  color: var(--muted, #9aa4b2);
+  line-height: 1.6;
+}
+
+.fade-card-image-wrapper {
+  position: relative;
+  flex: 1; /* Image container size */
+  min-height: 250px; 
+}
+
+.fade-card-image-wrapper img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  
+  /* THE FADE EFFECT: Fades the left side of the image out so it blends with the background */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 35%);
+  mask-image: linear-gradient(to right, transparent 0%, black 35%);
+}
+
+/* Hover effect to lift the card */
+.fade-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .fade-card {
+    flex-direction: column;
+    position: relative; /* Disables sticky stacking on mobile for better scrolling */
+    top: 0;
+  }
+  
+  .fade-card-content {
+    background: var(--card, #0b1220);
+    order: 2; /* Moves text below the image */
+    padding: 24px;
+  }
+  
+  .fade-card-image-wrapper {
+    flex-basis: 200px;
+    order: 1;
+  }
+  
+  .fade-card-image-wrapper img {
+    /* Changes fade direction for mobile (fades bottom instead of left) */
+    -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  }
+}

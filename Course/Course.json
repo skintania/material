@@ -2,19 +2,19 @@
   {
     "title": "Physics",
     "description": "(Alpha Version) IN DEV",
-    "link": "/Physics/",
+    "link": "/Course/Physics/",
     "linkText": "เข้าสู่ Physics →"
   },
   {
     "title": "Calculus",
     "description": "(ยังไม่พร้อม)",
-    "link": "/calculus/",
+    "link": "/Course/calculus/",
     "linkText": "เข้าสู่ Calculus →"
   },
   {
     "title": "Material",
     "description": "คลิปอาจารย์",
-    "link": "/Material/",
+    "link": "/Course/Material/",
     "linkText": "เข้าสู่ Material →"
   },
   {
