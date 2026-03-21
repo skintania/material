@@ -1,0 +1,16 @@
+{
+    "General Physics 1": "fa-solid fa-atom",
+    "General Physics 2": "fa-solid fa-magnet",
+    "Calculus 1": "fa-solid fa-calculator",
+    "Calculus 2": "fa-solid fa-square-root-variable",
+    "General Physics Lab 1": "fa-solid fa-microscope",
+    "General Physics Lab 2": "fa-solid fa-wave-square",
+    "General Chemistry": "fa-solid fa-flask",
+    "General Chemistry Lab": "fa-solid fa-vials",
+    "Computer Programming": "fa-solid fa-laptop-code",
+    "Engineering Materials": "fa-solid fa-cubes",
+    "Engineering Drawing": "fa-solid fa-pen-ruler",
+    "Exploring Engineering World": "fa-solid fa-gears",
+    "Experiential English 1": "fa-solid fa-language",
+    "Experiential English 2": "fa-solid fa-book-open-reader"
+}

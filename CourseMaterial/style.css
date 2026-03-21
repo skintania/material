@@ -67,6 +67,7 @@
     width: 100%; 
     padding: 0 5px;
     box-sizing: border-box;
+    text-overflow: ellipsis;
 }
 
 /* --- Breadcrumb Navigation Styles (Unchanged) --- */
@@ -103,12 +104,33 @@
     font-size: 0.95rem;
 }
 
-.file-preview-img {
+.loader {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.pdf-preview-canvas {
     width: 100%;
     height: 100%;
-    /* You can change this to 'contain' if you don't want PDF edges getting cropped */
-    object-fit: cover; 
-    border-radius: 6px; 
+    object-fit: cover;
+    display: none; /* ซ่อนไว้ก่อนจนกว่าจะโหลดเสร็จ */
+}
+
+.file-preview-img {
+    width: 100% !important;   /* เต็มความกว้างของ .drive-icon */
+    height: 100% !important;  /* เต็มความสูงของ .drive-icon */
+    object-fit: cover;       /* สำคัญที่สุด! ขยายรูปให้เต็มกรอบโดยรักษาสัดส่วน (อาจตัดบางส่วนออก) */
+    object-position: center top; /* จัดวางรูปให้อยู่ตรงกลางและชิดด้านบน */
 }
 
 @media screen and (max-width: 768px){
