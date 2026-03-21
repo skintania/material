@@ -276,9 +276,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (viewToggleBtn) {
         viewToggleBtn.addEventListener('click', () => {
             viewMode = viewMode === 'grid' ? 'list' : 'grid';
-            viewToggleBtn.innerHTML = viewMode === 'grid'
-                ? '<i class="fa-solid fa-list"></i> Switch to List View'
-                : '<i class="fa-solid fa-grip"></i> Switch to Grid View';
+            // ADD <span> HERE:
+            viewToggleBtn.innerHTML = viewMode === 'grid' 
+                ? '<i class="fa-solid fa-list"></i> <span>List View</span>' 
+                : '<i class="fa-solid fa-grip"></i> <span>Grid View</span>';
             renderGrid(currentItemsData);
         });
     }
@@ -287,9 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
         selectBtn.addEventListener('click', () => {
             isSelectMode = !isSelectMode;
             gridContainer.classList.toggle('selecting', isSelectMode);
-            selectBtn.innerHTML = isSelectMode
-                ? '<i class="fa-solid fa-xmark"></i> Cancel'
-                : '<i class="fa-solid fa-check-double"></i> Select';
+            // ADD <span> HERE:
+            selectBtn.innerHTML = isSelectMode 
+                ? '<i class="fa-solid fa-xmark"></i> <span>Cancel</span>' 
+                : '<i class="fa-solid fa-check-double"></i> <span>Select</span>';
+            
             if (!isSelectMode) {
                 selectedFiles.clear();
                 updateDownloadBtn();

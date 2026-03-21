@@ -40,6 +40,7 @@
 
 .drive-icon {
     flex-grow: 1; /* Takes up all space not used by footer */
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -84,6 +85,7 @@
 .item-checkbox {
     width: 18px;
     height: 18px;
+    flex-shrink: 0;
     margin: 0;
     flex-shrink: 0;
     accent-color: var(--accent);
@@ -276,14 +278,67 @@
     -webkit-line-clamp: 1; /* Optional: forces text to a single line in list view */
 }
 
+.list-view .drive-card {
+    display: flex;
+    flex-direction: row; /* Force side-by-side */
+    align-items: center;
+    width: 100%;        /* Anchor 1: Card must be 100% */
+    padding: 12px;
+    gap: 12px;
+}
+
+/* 2. The Icon (Prevent Squishing) */
+.list-view .drive-icon {
+    flex-shrink: 0;   /* Don't let the long text compress the icon */
+    width: 32px;      /* Standard size for list view */
+    margin-right: 12px;
+}
+
+/* 3. The Footer/Text Area */
+.list-view .card-footer {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;     /* Anchor 2: Grow, shrink, and base size auto */
+    min-width: 0;       /* Essential for ellipsis, but needs the flex above */
+    overflow: hidden;   /* Keeps text inside */
+    background: none;   /* Remove any background that might be overlapping */
+}
+
+/* 4. The Filename Text */
+.list-view .drive-name {
+    display: block;     /* Anchor 3: Ensure it's not set to 'none' */
+    width: 100%;        /* Occupy the footer space */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+    color: #e6eef8;     /* Ensure color isn't matching the background */
+}
+/* Mobile Optimization for Header Buttons */
 @media screen and (max-width: 600px) {
+    /* Hide the text inside the buttons */
     .toggle-btn span {
-        display: none; /* Hides text like "List View" but keeps icon */
+        display: none;
     }
+
+    /* Make buttons square-ish and centered */
     .toggle-btn {
-        padding: 8px 10px;
+        padding: 0;
         width: 40px;
+        height: 40px;
         justify-content: center;
+        border-radius: 50%; /* Optional: makes them circular on mobile */
+    }
+
+    /* Ensure the icon is centered and large enough to tap */
+    .toggle-btn i {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    /* Keep the buttons from squishing the path text too much */
+    .breadcrumb-right {
+        gap: 5px;
     }
 }
 

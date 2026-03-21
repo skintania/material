@@ -105,6 +105,47 @@ header{
     }
 }
 
+@media (max-width:650px) {
+    /* The button styling */
+    .menu-toggle {
+        display: block;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        order: 2; /* Adjusts position */
+    }
+
+    .header-credits { order: 3; }
+
+    /* The Dropdown logic */
+    .navbar {
+        display: block; /* Keep it block so it can slide */
+        max-height: 0; /* Hidden by default */
+        overflow: hidden;
+        transition: max-height 0.4s ease-out, opacity 0.3s;
+        opacity: 0;
+        margin-bottom: 0px;
+    }
+
+    /* When the class 'active' is added via JS */
+    .navbar.active {
+        max-height: 500px; /* Big enough to show all links */
+        opacity: 1;
+        margin-bottom: 20px;
+    }
+
+    .navbar ul {
+        flex-direction: column;
+    }
+}
+
+/* Hide toggle on desktop */
+@media (min-width: 651px) {
+    .menu-toggle { display: none; }
+}
+
 /* comment button */
 /* Floating button */
 
