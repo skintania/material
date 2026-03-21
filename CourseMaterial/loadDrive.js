@@ -3,74 +3,134 @@ document.addEventListener('DOMContentLoaded', () => {
     const breadcrumbContainer = document.getElementById('breadcrumbContainer');
     const backBtn = document.getElementById('backBtn');
     const currentPathText = document.getElementById('currentPathText');
+    const viewToggleBtn = document.getElementById('viewToggleBtn'); // NEW: The toggle button
 
     let subjectIcons = {};
     let folderHistory = [];
     let pathNames = ["Home"];
 
-    // --- 1. Setup PDF.js for Previews ---
+    // NEW: State trackers for the view mode
+    let currentItemsData = []; // Remembers the current folder's files so we can re-render instantly
+    let viewMode = 'grid'; // Default view
+
     const pdfJS = window['pdfjs-dist/build/pdf'];
     if (pdfJS) {
         pdfJS.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
 
-    // --- 2. Lazy Loader for PDF Previews (Saves memory & bandwidth) ---
     const pdfObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const container = entry.target;
                 const link = container.dataset.link;
                 if (link) {
-                    generatePdfPreview(link, container); 
-                    observer.unobserve(container); 
+                    generatePdfPreview(link, container);
+                    observer.unobserve(container);
                 }
             }
         });
     }, { rootMargin: '150px', threshold: 0.1 });
 
-    // --- 3. Initial Setup & Fetch ---
     async function init() {
         try {
-            // Load custom icons if you have them
             const iconResponse = await fetch('icons.json');
             if (iconResponse.ok) subjectIcons = await iconResponse.json();
-
-            // Fetch the Home directory
-            await loadDirectory(''); 
+            await loadDirectory('');
         } catch (error) {
             showError(`Initialization failed: ${error.message}`);
         }
     }
 
-    // --- 4. Fetch Data from your API ---
+    // --- View Toggle Logic ---
+    if (viewToggleBtn) {
+        viewToggleBtn.addEventListener('click', () => {
+            // Switch the mode
+            viewMode = viewMode === 'grid' ? 'list' : 'grid';
+
+            // Update the button icon/text so the user knows what clicking it next will do
+            if (viewMode === 'grid') {
+                viewToggleBtn.innerHTML = '<i class="fa-solid fa-list"></i> Switch to List View';
+            } else {
+                viewToggleBtn.innerHTML = '<i class="fa-solid fa-grip"></i> Switch to Grid View';
+            }
+
+            // Re-render the exact same files, but in the new layout!
+            renderGrid(currentItemsData);
+        });
+    }
+
     async function loadDirectory(targetPath) {
         gridContainer.innerHTML = '<div style="text-align:center; padding: 20px;">Loading...</div>';
-        
+
         try {
-            // Ask the API for the specific folder (or home if targetPath is empty)
-            const url = targetPath 
+            const url = targetPath
                 ? `https://skintania-api.beamsvj.workers.dev/?path=${encodeURIComponent(targetPath)}`
                 : `https://skintania-api.beamsvj.workers.dev/`;
-                
+
             const response = await fetch(url);
             if (!response.ok) throw new Error('API failed to return data');
-            
+
             const items = await response.json();
-            renderGrid(items); // Pass the data to the display function
+            currentItemsData = items; // Save this so the toggle button can re-use it!
+            renderGrid(items);
         } catch (error) {
             showError(`Could not load folder: ${error.message}`);
         }
     }
 
-    // --- 5. The Core Display Logic (Rendering the Grid) ---
     function renderGrid(items) {
-        gridContainer.innerHTML = ''; // Clear current grid
-        breadcrumbContainer.style.display = folderHistory.length > 0 ? 'flex' : 'none';
-        currentPathText.textContent = pathNames.join(' > ');
+        gridContainer.innerHTML = '';
 
-        pdfObserver.disconnect(); // Reset the lazy loader for the new page
+        // --- 1. NEW: BUILD CLICKABLE BREADCRUMBS ---
+        currentPathText.innerHTML = ''; // Clear the "Home > Folder" text
 
-        // If the folder is empty
+        pathNames.forEach((name, index) => {
+            const isLast = index === pathNames.length - 1;
+
+            // Create the clickable span
+            const span = document.createElement('span');
+            span.className = 'breadcrumb-link';
+            span.textContent = name;
+
+            if (!isLast) {
+                span.onclick = () => {
+                    // Logic to jump back multiple levels
+                    const levelsToPop = pathNames.length - 1 - index;
+                    for (let i = 0; i < levelsToPop; i++) {
+                        pathNames.pop();
+                        folderHistory.pop();
+                    }
+                    const newPath = pathNames.slice(1).join('/');
+                    loadDirectory(newPath);
+                };
+
+                currentPathText.appendChild(span);
+
+                // Add a separator ( > )
+                const separator = document.createElement('span');
+                separator.className = 'path-separator';
+                separator.textContent = ' > ';
+                currentPathText.appendChild(separator);
+            } else {
+                // Last item is the current folder (not clickable/different color)
+                span.style.color = '#e6eef8';
+                span.style.cursor = 'default';
+                currentPathText.appendChild(span);
+            }
+        });
+
+        // --- 2. Handle Back Button State ---
+        backBtn.disabled = (folderHistory.length === 0);
+
+        // --- 3. Set the View Mode ---
+        if (viewMode === 'list') {
+            gridContainer.classList.add('list-view');
+        } else {
+            gridContainer.classList.remove('list-view');
+        }
+
+        pdfObserver.disconnect();
+
         if (!items || items.length === 0) {
             gridContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: gray;">This folder is empty.</div>';
             return;
@@ -86,27 +146,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.target = '_blank';
             }
 
-            let iconHtml = getIconHtml(item); // Get the correct icon/preview
+            let iconHtml = getIconHtml(item);
             card.innerHTML = `${iconHtml}<div class="drive-name">${item.name}</div>`;
             gridContainer.appendChild(card);
 
-            // Tell the observer to watch PDF files for lazy loading
-            if (isFile && item.name.toLowerCase().endsWith('.pdf')) {
+            // Only observe PDFs if we are actually in Grid mode (List mode uses static icons)
+            if (viewMode === 'grid' && isFile && item.name.toLowerCase().endsWith('.pdf')) {
                 const container = card.querySelector('.pdf-container');
                 if (container) {
-                    container.dataset.link = item.link; 
-                    pdfObserver.observe(container);    
+                    container.dataset.link = item.link;
+                    pdfObserver.observe(container);
                 }
             }
 
-            // Handle clicking on a Folder
             if (!isFile) {
                 card.addEventListener('click', () => {
-                    // Save current view to history so 'Back' is instant
-                    folderHistory.push(items); 
+                    folderHistory.push(items);
                     pathNames.push(item.name);
-                    
-                    // Calculate the new path and fetch it
                     const newPath = pathNames.slice(1).join('/');
                     loadDirectory(newPath);
                 });
@@ -114,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 6. Helper: Determine which Icon/Preview to show ---
     function getIconHtml(item) {
         if (item.type === 'folder') {
             const isHome = folderHistory.length === 0;
@@ -126,26 +181,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
         if (imageExtensions.includes(ext)) {
-            return `<div class="drive-icon"><img src="${item.link}" alt="${item.name}" class="file-preview-img" loading="lazy" /></div>`;
+            // Optional: You could also return a standard icon for images in list mode if you want it super clean!
+            return `<div class="drive-icon"><img src="${item.link}" alt="${item.name}" class="file-preview-img" loading="lazy" style="max-width:40px; border-radius:4px;"/></div>`;
         } else if (ext === 'pdf') {
-            return `
-            <div class="drive-icon pdf-container">
-                <div class="loader" style="border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: auto;"></div>
-                <canvas class="pdf-preview-canvas" style="display:none; width: 100%; height: 100%; object-fit: cover;"></canvas>
-                <i class="fa-solid fa-file-pdf fallback-icon" style="display:none; color:#e74c3c;"></i>
-            </div>`;
+            // NEW: If we are in list view, skip the canvas and just return a static icon
+            if (viewMode === 'list') {
+                return `<div class="drive-icon"><i class="fa-solid fa-file-pdf" style="color:#e74c3c; font-size: 1.5rem;"></i></div>`;
+            } else {
+                // Otherwise, give them the nice grid preview
+                return `
+                <div class="drive-icon pdf-container">
+                    <div class="loader" style="border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: auto;"></div>
+                    <canvas class="pdf-preview-canvas" style="display:none; width: 100%; height: 100%; object-fit: cover;"></canvas>
+                    <i class="fa-solid fa-file-pdf fallback-icon" style="display:none; color:#e74c3c;"></i>
+                </div>`;
+            }
         } else {
             return `<div class="drive-icon"><i class="fa-solid fa-file-lines"></i></div>`;
         }
     }
 
-    // --- 7. Helper: Generate actual PDF Canvas Preview ---
     async function generatePdfPreview(url, container) {
         const canvas = container.querySelector('.pdf-preview-canvas');
         const loader = container.querySelector('.loader');
         const fallbackIcon = container.querySelector('.fallback-icon');
 
-        if (!canvas || !loader || !fallbackIcon) return; 
+        if (!canvas || !loader || !fallbackIcon) return;
 
         try {
             const loadingTask = pdfJS.getDocument(url);
@@ -168,20 +229,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 8. UI Helpers ---
     function showError(msg) {
         gridContainer.innerHTML = `<p style="color:red; text-align:center;">${msg}</p>`;
     }
 
-    // Handle "Back" Button
     backBtn.addEventListener('click', () => {
         if (folderHistory.length > 0) {
-            pathNames.pop(); 
-            // Load instantly from history instead of fetching again!
-            renderGrid(folderHistory.pop()); 
+            pathNames.pop();
+            const previousItems = folderHistory.pop();
+            currentItemsData = previousItems; // Update our tracker
+            renderGrid(previousItems);
         }
     });
 
-    // Start the app!
     init();
 });

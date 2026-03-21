@@ -70,33 +70,101 @@
     text-overflow: ellipsis;
 }
 
-/* --- Breadcrumb Navigation Styles (Unchanged) --- */
 .breadcrumb-container {
-    display: flex;
+    display: flex !important;
     align-items: center;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    justify-content: space-between; /* Pushes items to the ends */
+    width: 100%;
+    gap: 20px; /* Space between path and button */
 }
 
-.back-btn {
-    background: transparent;
-    border: 1px solid var(--muted);
+/* This is the magic part */
+.breadcrumb-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;          /* Takes up all remaining space */
+    min-width: 0;     /* Allows text to truncate if too long */
+    overflow: hidden; /* Prevents path from breaking the layout */
+}
+
+.toggle-btn {
+    flex-shrink: 0;   /* Prevents the button from getting squished */
+    margin-left: auto; /* Double-insurance to stay on the right */
+}
+
+.path-text {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+/* Style for clickable breadcrumb parts */
+.breadcrumb-link {
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.breadcrumb-link:hover {
+    color: var(--accent);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.path-separator {
+    opacity: 0.5;
+    user-select: none;
+}
+/* --- Skintania Theme Buttons --- */
+
+/* The shared base style for both buttons */
+.back-btn, .toggle-btn {
+    background: rgba(255, 255, 255, 0.05); /* Semi-transparent white */
+    backdrop-filter: blur(8px);            /* Frosted glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #e6eef8;
-    padding: 6px 16px;
+    padding: 8px 18px;
     border-radius: 20px;
     cursor: pointer;
     font-family: inherit;
     font-weight: 500;
-    transition: all 0.2s;
-    margin-right: 16px;
+    font-size: 0.9rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between icon and text */
 }
 
-.back-btn:hover {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
+/* Hover State - Glow and slightly brighter */
+.back-btn:hover:not(:disabled), 
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--accent); /* Uses your blue accent color for the border */
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); /* Soft blue glow */
+    transform: translateY(-1px);
+}
+
+/* Active/Click State */
+.back-btn:active:not(:disabled), 
+.toggle-btn:active {
+    transform: translateY(1px);
+}
+
+/* Disabled State (For the Back button at Home) */
+.back-btn:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+
+/* Ensure the icons look good inside the buttons */
+.back-btn i, .toggle-btn i {
+    font-size: 0.85rem;
+    opacity: 0.8;
 }
 
 .path-text {
@@ -132,6 +200,58 @@
     object-fit: cover;       /* สำคัญที่สุด! ขยายรูปให้เต็มกรอบโดยรักษาสัดส่วน (อาจตัดบางส่วนออก) */
     object-position: center top; /* จัดวางรูปให้อยู่ตรงกลางและชิดด้านบน */
 }
+
+/* 1. Change the container from a grid to a vertical column */
+.grid.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Tighter gap for lists */
+}
+
+/* 2. Make the card horizontal, remove the tall height */
+.grid.list-view .drive-card {
+    flex-direction: row;
+    height: auto; /* Overrides the 320px height */
+    padding: 12px 16px;
+    align-items: center;
+}
+
+/* 3. Shrink the big icon box and put it on the left */
+.grid.list-view .drive-icon {
+    width: 40px; /* Overrides the 100% width */
+    height: 40px; /* Overrides the 240px height */
+    font-size: 1.8rem; /* Shrinks the giant 5rem icons */
+    margin-bottom: 0;
+    margin-right: 16px;
+    background: transparent; /* Removes the dark box behind icons in list mode */
+}
+
+/* 4. Make images fit the new small square */
+.grid.list-view .file-preview-img {
+    border-radius: 4px;
+}
+
+/* 5. Left-align the text and let it fill the space */
+.grid.list-view .drive-name {
+    text-align: left;
+    flex-grow: 1;
+    width: auto;
+    padding: 0;
+    -webkit-line-clamp: 1; /* Optional: forces text to a single line in list view */
+}
+
+/* 6. Ensure mobile list view overrides the mobile grid heights */
+@media screen and (max-width: 768px){
+    .grid.list-view .drive-card {
+        height: auto; /* Overrides the 180px mobile height */
+    }
+    .grid.list-view .drive-icon {
+        height: 35px; /* Overrides the 110px mobile height */
+        width: 35px;
+        font-size: 1.5rem;
+    }
+}
+
 
 @media screen and (max-width: 768px){
     .grid {

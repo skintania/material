@@ -125,9 +125,15 @@
         <site-header page-title="SKDrive" page-desc="ไฟล์สำหรับวิชาต่างๆ">
         </site-header>
 
-        <div id="breadcrumbContainer" class="breadcrumb-container" style="display: none;">
-            <button id="backBtn" class="back-btn">⬅ Back</button>
-            <span id="currentPathText" class="path-text">Home</span>
+        <div id="breadcrumbContainer" class="breadcrumb-container" style="display: flex;">
+            <div class="breadcrumb-left">
+                <button id="backBtn" class="back-btn">⬅ Back</button>
+                <span id="currentPathText" class="path-text">Home</span>
+            </div>
+        
+            <button id="viewToggleBtn" class="toggle-btn">
+                <i class="fa-solid fa-list"></i> Switch to List View
+            </button>
         </div>
 
         <section id="coursesGrid" class="grid" aria-label="Courses">
