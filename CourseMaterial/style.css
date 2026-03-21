@@ -41,6 +41,7 @@
 .drive-icon {
     flex-grow: 1; /* Takes up all space not used by footer */
     flex-shrink: 0;
+    flex:1;
     display: flex;
     align-items: center;
     justify-content: center;
