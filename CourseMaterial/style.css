@@ -291,6 +291,7 @@
 /* 2. The Icon (Prevent Squishing) */
 .list-view .drive-icon {
     flex-shrink: 0;   /* Don't let the long text compress the icon */
+    flex: 0 0 auto;   /* Don't let the icon grow or shrink */
     width: 32px;      /* Standard size for list view */
     margin-right: 12px;
 }
