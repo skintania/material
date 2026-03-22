@@ -118,7 +118,7 @@ document.getElementById('calbutton').addEventListener('click', function() {
             // Update GPAX and raw score display
             if (scoreTextEls.length >= 2) {
                 scoreTextEls[0].innerText = `GPAX: ${gpax.toFixed(2)}`;
-                scoreTextEls[1].innerText = `Score: ${weightedScore.toFixed(1)} / ${(totalWeight * 4).toFixed(1)}`;
+                scoreTextEls[1].innerText = `Score: ${weightedScore.toFixed(1)} / ${(totalWeight * 4).toFixed(1)} (${(weightedScore.toFixed(1)/(totalWeight * 4).toFixed(1)*100).toFixed(2)})%`;
             } else if (scoreTextEls.length === 1) {
                 scoreTextEls[0].innerText = `GPAX: ${gpax.toFixed(2)} | Score: ${weightedScore.toFixed(1)} / ${(totalWeight * 4).toFixed(1)}`;
             }
