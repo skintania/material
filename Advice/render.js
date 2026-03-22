@@ -37,10 +37,10 @@ function renderCourses(coursesData) {
               <button class="tab-btn" onclick="switchTab(event, '${course.id}-tips')">ทริคเก็บ A</button>
             </div>
             
-            <div class="tab-content active" id="${course.id}-info">${course.info}</div>
-            <div class="tab-content" id="${course.id}-warning">⚠️ ${course.warning}</div>
-            <div class="tab-content" id="${course.id}-prof">👨‍🏫 ${course.instructor}</div>
-            <div class="tab-content" id="${course.id}-tips">🎯 ${course.tips}</div>
+            <div class="tab-content active" id="${course.id}-info">${formatText(course.info)}</div>
+            <div class="tab-content" id="${course.id}-warning">⚠️ ${formatText(course.warning)}</div>
+            <div class="tab-content" id="${course.id}-prof">👨‍🏫 ${formatText(course.instructor)}</div>
+            <div class="tab-content" id="${course.id}-tips">🎯 ${formatText(course.tips)}</div>
           </div>
         </div>
       </div>
@@ -68,6 +68,12 @@ function switchTab(event, targetId) {
   
   event.target.classList.add('active');
   container.querySelector(`#${targetId}`).classList.add('active');
+}
+
+// ฟังก์ชันสำหรับตัดช่องว่างหัวท้าย และเปลี่ยน \n เป็น <br>
+function formatText(text) {
+  if (!text) return ""; // ป้องกัน error กรณีไม่มีข้อมูล
+  return text.trim().replace(/\n/g, '<br>');
 }
 
 fetchCourses();
