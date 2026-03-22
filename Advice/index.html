@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Skintania</title>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
 
@@ -44,7 +45,6 @@
       border: 1px solid rgba(255, 255, 255, 0.03);
     }
 
-    /* สไตล์ปุ่มและการ์ด */
     .btn {
       display: block;
       text-align: center;
@@ -107,9 +107,10 @@
   </style>
 
   <link rel="stylesheet" href="/Assest/cmt.css">
-  <link rel="stylesheet" href="/Advice/style.css">
+  <link rel="stylesheet" href="style.css">
   <script src="/Assest/cmt.js" defer></script>
 
+  <script src="render.js" defer></script>
   <script src="/Template/component.js" defer></script>
 
 </head>
@@ -119,16 +120,7 @@
   <comment-widget></comment-widget>
 
   <main class="wrap">
-    <site-header page-title="Home" page-desc="หน้าแรก">
-    </site-header>
-
-    <div class="construction-icon">🚧</div>
-    <h1>Under Construction</h1>
-    <p class="lead">
-      เว็บไซต์ Skintania กำลังอยู่ระหว่างการปรับปรุงระบบและอัปเดตเนื้อหา<br>
-      รอกันอีกนิดนะครับ แล้วพบกันใหม่เร็วๆ นี้!
-    </p>
-    <a href="javascript:history.back()" class="btn">กลับไปหน้าก่อนหน้า</a>
+    <site-header page-title="Home" page-desc="หน้าแรก"></site-header>
 
     <section id="coursesGrid" class="grid" aria-label="Courses">
     </section>
