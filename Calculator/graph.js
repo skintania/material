@@ -183,16 +183,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // โหลดไฟล์ data.json มาแสดงผลทันทีที่เปิดเว็บ
-    fetch('data.json')
+    const finalUrl = `${CONFIG.API_URL}/asset?file=Calculator/data.json`;
+
+    fetch(finalUrl)
         .then(res => {
-            if (!res.ok) throw new Error('Network response was not ok');
+            if (!res.ok) {
+                console.error("Server responded with:", res.status);
+                return res.text().then(text => { throw new Error(text) });
+            }
             return res.json();
         })
         .then(historyData => {
-            renderTrendChart(historyData, 'minScore'); // เริ่มต้นด้วยกราฟ minScore
+            // ✅ ต้องเพิ่มบรรทัดนี้ เพื่อส่งข้อมูลไปวาดกราฟ!
+            renderTrendChart(historyData, 'minScore');
         })
-        .catch(err => console.error('ไม่สามารถโหลดข้อมูลกราฟตอนเริ่มต้นได้:', err));
+        .catch(err => console.error("Fetch error:", err));
 });
 
 // ฟังก์ชันสร้างปุ่ม Legend แบบ Custom

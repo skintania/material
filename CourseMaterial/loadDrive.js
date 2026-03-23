@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gridContainer.innerHTML = '<div style="text-align:center; padding: 20px;">Loading...</div>';
         try {
             const url = targetPath
-                ? `https://skintania-api.beamsvj.workers.dev/?path=${encodeURIComponent(targetPath)}`
-                : `https://skintania-api.beamsvj.workers.dev/`;
+                ? `https://skintania-api.skintania143.workers.dev/skdrive?path=${encodeURIComponent(targetPath)}`
+                : `https://skintania-api.skintania143.workers.dev/skdrive`;
 
             const response = await fetch(url);
             if (!response.ok) throw new Error('API failed to return data');
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function getAllFilesFromFolder(apiPath, zipPrefix) {
         let files = [];
         try {
-            const url = `https://skintania-api.beamsvj.workers.dev/?path=${encodeURIComponent(apiPath)}`;
+            const url = `https://skintania-api.skintania143.workers.dev/skdrive?path=${encodeURIComponent(apiPath)}`;
             const response = await fetch(url);
             const items = await response.json();
 
