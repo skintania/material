@@ -7,72 +7,75 @@
   <title>สมัครสมาชิก - Skintania</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="style.css">
-
   <script src="/config.js"></script>
-
   <script src="checkpassword.js" defer></script>
 </head>
 
 <body>
 
   <main class="auth-wrap">
-  <div class="card">
-    <h1>สร้างบัญชีใหม่</h1>
-    <p class="lead">เข้าร่วมเป็นส่วนหนึ่งของ OSK CU Intania</p>
+    <div class="card">
+      <h1>สร้างบัญชีใหม่</h1>
+      <p class="lead">เข้าร่วมเป็นส่วนหนึ่งของ OSK CU Intania</p>
 
-    <form id="registerForm" method="POST">
-      
-      <div class="row">
-        <div class="form-group">
-          <label for="firstname">ชื่อจริง</label>
-          <input type="text" id="firstname" name="firstname" class="form-control" placeholder="ชื่อ" required>
+      <form id="registerForm" method="POST">
+        
+        <div class="row">
+          <div class="form-group">
+            <label for="firstname">ชื่อจริง</label>
+            <input type="text" id="firstname" name="firstname" class="form-control" placeholder="ชื่อ" required>
+          </div>
+          <div class="form-group">
+            <label for="lastname">นามสกุล</label>
+            <input type="text" id="lastname" name="lastname" class="form-control" placeholder="นามสกุล" required>
+          </div>
         </div>
+
         <div class="form-group">
-          <label for="lastname">นามสกุล</label>
-          <input type="text" id="lastname" name="lastname" class="form-control" placeholder="นามสกุล" required>
+          <label for="username">ชื่อผู้ใช้ (Username)</label>
+          <input type="text" id="username" name="username" class="form-control" placeholder="A-Z, a-z, 0-9 เท่านั้น" minlength="4" maxlength="20" pattern="[a-zA-Z0-9]+" title="กรุณาใช้เฉพาะตัวอักษรภาษาอังกฤษและตัวเลขเท่านั้น" required>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="username">ชื่อผู้ใช้ (Username)</label>
-        <input type="text" id="username" name="username" class="form-control" placeholder="A-Z, a-z, 0-9 เท่านั้น" minlength="4" maxlength="20" pattern="[a-zA-Z0-9]+" title="กรุณาใช้เฉพาะตัวอักษรภาษาอังกฤษและตัวเลขเท่านั้น" required>
-      </div>
-
-      <div class="row">
-        <div class="form-group">
-          <label for="osk_gen">รุ่น OSK</label>
-          <input type="number" id="osk_gen" name="osk_gen" class="form-control" placeholder="ex. 143" required>
+        <div class="row">
+          <div class="form-group">
+            <label for="osk_gen">รุ่น OSK</label>
+            <input type="number" id="osk_gen" name="osk_gen" class="form-control" placeholder="ex. 143" required>
+          </div>
+          <div class="form-group">
+            <label for="osk_id">เลขประจำตัว (OSK)</label>
+            <input type="text" id="osk_id" name="osk_id" class="form-control" placeholder="ex. 5xxxx" required>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="student_id">รหัสนิสิต</label>
-          <input type="text" id="student_id" name="student_id" class="form-control" placeholder="ex. 683xxxxx21" required>
+
+        <div class="row">
+          <div class="form-group">
+            <label for="student_id">รหัสนิสิต (CU)</label>
+            <input type="text" id="student_id" name="student_id" class="form-control" placeholder="ex. 683xxxxx21" required>
+          </div>
+          <div class="form-group">
+            <label for="email">อีเมล</label>
+            <input type="email" id="email" name="email" class="form-control" placeholder="example@email.com" required>
+          </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="email">อีเมล</label>
-        <input type="email" id="email" name="email" class="form-control" placeholder="example@email.com" required>
-      </div>
-
-      <div class="row align-bottom">
-        <div class="form-group">
-          <label for="password">รหัสผ่าน <span class="help-text">(อย่างน้อย 8 ตัว)</span></label>
-          <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" minlength="8" required>
+        <div class="row align-bottom">
+          <div class="form-group">
+            <label for="password">รหัสผ่าน <span class="help-text">(อย่างน้อย 8 ตัว)</span></label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" minlength="8" required>
+          </div>
+          <div class="form-group">
+            <label for="confirm_password">ยืนยันรหัสผ่าน</label>
+            <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="••••••••" minlength="8" required>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="confirm_password">ยืนยันรหัสผ่าน</label>
-          <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="••••••••" minlength="8" required>
-        </div>
-      </div>
 
-      <button type="submit" class="btn">ลงทะเบียน</button>
-    </form>
+        <button type="submit" class="btn">ลงทะเบียน</button>
+      </form>
 
-    <a href="/login/" class="auth-link">มีบัญชีอยู่แล้วใช่ไหม? เข้าสู่ระบบที่นี่</a>
-  </div>
-</main>
+      <a href="/login/" class="auth-link">มีบัญชีอยู่แล้วใช่ไหม? เข้าสู่ระบบที่นี่</a>
+    </div>
+  </main>
 
 </body>
 

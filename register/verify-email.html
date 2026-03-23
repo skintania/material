@@ -7,8 +7,10 @@
   <title>ยืนยันอีเมล - Skintania</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
-  
+
   <link rel="stylesheet" href="style.css">
+
+  <script src="/config.js"></script>
 </head>
 
 <body>
@@ -18,25 +20,126 @@
       <h1>ยืนยันอีเมล</h1>
       <p class="lead">เราได้ส่งรหัส OTP 6 หลักไปที่อีเมลของคุณแล้ว<br>กรุณากรอกรหัสด้านล่างเพื่อยืนยันตัวตน</p>
 
-      <form method="POST">
-        
+      <form id="otpForm">
         <div class="form-group">
-          <input type="text" id="otp" name="otp" class="form-control" 
-                 style="text-align: center; letter-spacing: 12px; font-size: 1.4rem; font-weight: 500;" 
-                 placeholder="------" 
-                 maxlength="6" 
-                 pattern="\d{6}" 
-                 title="กรุณากรอกตัวเลข 6 หลัก" 
-                 autocomplete="one-time-code" 
-                 required>
+          <input type="text" id="otp" name="otp" class="form-control"
+            style="text-align: center; letter-spacing: 12px; font-size: 1.4rem; font-weight: 500;" placeholder="------"
+            maxlength="6" inputmode="numeric" autocomplete="one-time-code" required>
         </div>
 
         <button type="submit" class="btn">ยืนยันรหัส OTP</button>
       </form>
 
-      <a href="#" class="auth-link" style="margin-top: 24px;">ไม่ได้รับอีเมล? ส่งรหัสใหม่อีกครั้ง</a>
+      <a href="javascript:void(0);" id="resendBtn" class="auth-link" style="margin-top: 24px;">ไม่ได้รับอีเมล?
+        ส่งรหัสใหม่อีกครั้ง</a>
     </div>
   </main>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("otpForm");
+    const otpInput = document.getElementById("otp");
+    const resendBtn = document.getElementById("resendBtn");
+
+    // 1. ดึงอีเมลจาก sessionStorage
+    const userEmail = sessionStorage.getItem("pendingVerificationEmail");
+
+    if (!userEmail) {
+      alert("ไม่พบข้อมูลการสมัคร กรุณาเข้าสู่ระบบหรือสมัครสมาชิกใหม่");
+      window.location.replace("/login/"); 
+      return;
+    }
+
+    // 2. บังคับพิมพ์ได้แค่ตัวเลข
+    otpInput.addEventListener('input', function (e) {
+      this.value = this.value.replace(/[^0-9]/g, '');
+    });
+
+    // 3. ฟังก์ชันกดยืนยัน OTP
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const otpCode = otpInput.value.trim();
+      if (otpCode.length !== 6) {
+        alert("กรุณากรอกรหัส OTP ให้ครบ 6 หลักครับ");
+        return;
+      }
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerText;
+      submitBtn.innerText = "กำลังตรวจสอบ...";
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch(`${CONFIG.API_URL}/auth/verify-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: userEmail, otp: otpCode })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          sessionStorage.removeItem("pendingVerificationEmail");
+          window.location.replace("/");
+        } else {
+          alert("เกิดข้อผิดพลาด: " + (result.error || "รหัส OTP ไม่ถูกต้อง"));
+          submitBtn.innerText = originalText;
+          submitBtn.disabled = false;
+        }
+      } catch (error) {
+        alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่ครับ");
+        submitBtn.innerText = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+
+    // 4. ฟังก์ชันกดส่ง OTP ใหม่อีกครั้ง (ย้ายเข้ามาข้างในแล้ว)
+    resendBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (resendBtn.style.pointerEvents === 'none') return;
+
+      resendBtn.innerText = "กำลังส่งรหัสใหม่...";
+      resendBtn.style.color = "#999";
+      resendBtn.style.pointerEvents = 'none';
+
+      try {
+        // ✨ เปลี่ยนเป็น CONFIG.API_URL และส่ง userEmail ที่หาเจอแน่นอนแล้ว
+        const response = await fetch(`${CONFIG.API_URL}/auth/resend-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: userEmail })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          alert("ส่งรหัส OTP ใหม่ไปที่อีเมลของคุณแล้วครับ!");
+          let counter = 60;
+          const timer = setInterval(() => {
+            counter--;
+            resendBtn.innerText = `ส่งรหัสใหม่ได้อีกครั้งใน (${counter}s)`;
+            if (counter <= 0) {
+              clearInterval(timer);
+              resendBtn.innerText = "ไม่ได้รับอีเมล? ส่งรหัสใหม่อีกครั้ง";
+              resendBtn.style.color = "";
+              resendBtn.style.pointerEvents = 'auto';
+            }
+          }, 1000);
+        } else {
+          alert("ผิดพลาด: " + result.error);
+          resendBtn.innerText = "ส่งรหัสใหม่อีกครั้ง";
+          resendBtn.style.pointerEvents = 'auto';
+          resendBtn.style.color = "";
+        }
+      } catch (error) {
+        console.error("Resend Error:", error);
+        alert("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง");
+        resendBtn.innerText = "ส่งรหัสใหม่อีกครั้ง";
+        resendBtn.style.pointerEvents = 'auto';
+        resendBtn.style.color = "";
+      }
+    });
+  });
+</script>
 
 </body>
 
