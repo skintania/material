@@ -14,26 +14,27 @@ function playVideo(src, el) {
 
 }
 
-fetch("videos.json")
+
+fetch("https://skintania-api.skintania143.workers.dev/course?path=material%2F")
 
     .then(res => res.json())
-
+    
     .then(videos => {
-
+        console.log(videos)
         videos.forEach((video, index) => {
 
             const div = document.createElement("div");
-
             div.className = "item";
-            div.textContent = video.title;
-
-            div.onclick = () => playVideo(video.url, div);
+            div.textContent = video.name;
+            
+            
+            div.onclick = () => playVideo(video.link, div);
 
             catalog.appendChild(div);
 
             if (index === 0) {
                 div.classList.add("active");
-                playVideo(video.url, div);
+                playVideo(video.link, div);
             }
 
         });

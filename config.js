@@ -1,4 +1,4 @@
-const CONFIG = {
+export const CONFIG = {
     API_URL: "https://skintania-api.skintania143.workers.dev"
 };
 // วิธีใช้ import config.js เข้ามา
