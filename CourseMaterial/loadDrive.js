@@ -42,7 +42,7 @@ const DriveAPI = {
         }
 
         if (!response.ok) throw new Error(`API error: ${response.status}`);
-        
+
         return await response.json();
     },
 
@@ -87,33 +87,39 @@ const UI = {
         }
 
         State.currentItems.forEach(item => this.createCard(item));
+
+        // เรียกโหลด Preview หลังจาก Render เสร็จ
+        if (State.currentItems.length > 0) {
+            setTimeout(() => {
+                Actions.loadLazyPreviews(); // สำหรับรูปภาพ
+                Actions.loadPdfPreviews();  // สำหรับ PDF
+            }, 100);
+        }
     },
 
     createCard(item) {
         const isFile = item.type === 'file';
-        const card = document.createElement(isFile ? 'a' : 'div');
+        const card = document.createElement('div'); // ใช้ div แทน a เพื่อควบคุมการคลิกได้สมบูรณ์
         card.className = `drive-card ${this.isSelected(item) ? 'selected' : ''}`;
-        
-        card.innerHTML = `
-            ${this.getIconHtml(item)}
-            <div class="card-footer">
-                <input type="checkbox" class="item-checkbox" 
-                    ${State.isSelectMode ? 'style="display:block"' : 'style="display:none"'}
-                    ${this.isSelected(item) ? 'checked' : ''}>
-                <div class="drive-name">${item.name}</div>
-            </div>
-        `;
 
-        if (isFile && !State.isSelectMode) {
-            card.href = item.link;
-            card.target = '_blank';
-        }
+        card.innerHTML = `
+        ${this.getIconHtml(item)}
+        <div class="card-footer">
+            <input type="checkbox" class="item-checkbox" 
+                ${State.isSelectMode ? 'style="display:block"' : 'style="display:none"'}
+                ${this.isSelected(item) ? 'checked' : ''}>
+            <div class="drive-name">${item.name}</div>
+        </div>
+    `;
 
         card.onclick = (e) => {
             if (State.isSelectMode) {
                 e.preventDefault();
                 this.toggleSelection(item, card);
-            } else if (!isFile) {
+            } else if (isFile) {
+                // 🚀 เรียกฟังก์ชัน Preview แทนการเปิด Link ตรง
+                Actions.previewFile(item.link, item.name);
+            } else {
                 this.navigateForward(item);
             }
         };
@@ -127,15 +133,23 @@ const UI = {
             const icon = isHome ? (State.subjectIcons[item.name] || 'fa-folder') : 'fa-folder';
             return `<div class="drive-icon"><i class="fa-solid ${icon}"></i></div>`;
         }
-        
+
         const ext = item.name.split('.').pop().toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
-            return `<div class="drive-icon"><img src="${item.link}" class="file-preview-img" loading="lazy"/></div>`;
+
+        // ถ้าเป็น PDF ให้ใส่ class 'pdf-preview-container'
+        if (ext === 'pdf') {
+            return `<div class="drive-icon pdf-preview-container" data-file-url="${item.link}">
+                    <i class="fa-solid fa-file-pdf" style="color:#e74c3c;"></i>
+                </div>`;
         }
-        
-        const iconClass = ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-lines';
-        const iconStyle = ext === 'pdf' ? 'style="color:#e74c3c;"' : '';
-        return `<div class="drive-icon"><i class="fa-solid ${iconClass}" ${iconStyle}></i></div>`;
+
+        if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
+            return `<div class="drive-icon img-preview-container" data-file-url="${item.link}">
+                    <i class="fa-solid fa-file-image"></i>
+                </div>`;
+        }
+
+        return `<div class="drive-icon"><i class="fa-solid fa-file-lines"></i></div>`;
     },
 
     updateBreadcrumbs() {
@@ -147,7 +161,7 @@ const UI = {
             span.textContent = name;
             span.onclick = () => this.navigateBackTo(i);
             this.pathText.appendChild(span);
-            
+
             if (i < State.pathNames.length - 1) {
                 const sep = document.createElement('span');
                 sep.className = 'path-separator';
@@ -263,7 +277,132 @@ const Actions = {
             UI.downloadBtn.disabled = false;
             UI.downloadBtn.innerHTML = originalText;
         }
+    },
+    async previewFile(fileUrl, fileName) {
+        try {
+            const token = localStorage.getItem("authToken");
+
+            // 1. ดึงข้อมูลไฟล์แบบแนบ Token
+            const response = await fetch(fileUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 401) {
+                alert("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
+                window.location.replace("/login/");
+                return;
+            }
+
+            if (!response.ok) throw new Error("ไม่สามารถเปิดไฟล์ได้");
+
+            // 2. แปลงเป็น Blob
+            const blob = await response.blob();
+
+            // 3. สร้าง URL ชั่วคราว (Blob URL)
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            // 4. เปิด Preview ในแท็บใหม่
+            // เบราว์เซอร์จะเปิด PDF หรือรูปภาพให้เหมือนเดิม เพราะมันเห็นเป็นไฟล์ดิบแล้ว
+            const newTab = window.open(blobUrl, '_blank');
+
+            if (!newTab) {
+                alert("โปรดอนุญาตให้เปิด Pop-up เพื่อดูไฟล์");
+            }
+
+            // หมายเหตุ: ไม่ต้องสั่ง revokeObjectURL ทันที 
+            // เพราะถ้าสั่งปิด URL ทันที แท็บที่เปิดใหม่อาจจะโหลดไฟล์ไม่ขึ้น
+        } catch (err) {
+            console.error("Preview Error:", err);
+            alert("เกิดข้อผิดพลาด: " + err.message);
+        }
+    },
+    async loadLazyPreviews() {
+        const containers = document.querySelectorAll('.img-preview-container:not(.loaded)');
+        if (containers.length === 0) return;
+
+        console.log(`🖼️ Loading ${containers.length} image previews...`);
+
+        const token = localStorage.getItem("authToken");
+
+        await Promise.all([...containers].map(async (container) => {
+            const fileUrl = container.dataset.fileUrl;
+            if (!fileUrl || !token) return;
+
+            try {
+                // 🔄 2. Fetch ข้อมูลรูปภาพพร้อมแนบ Token
+                const response = await fetch(fileUrl, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error("เข้าถึงไฟล์ไม่ได้");
+
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+
+                // 🔄 3. แทนที่ Icon ด้วยแท็ก <img> พร้อม Blob URL ใหม่
+                const img = document.createElement('img');
+                img.src = blobUrl;
+                img.className = 'file-preview-img loaded-preview';
+                img.loading = 'lazy';
+
+                // ล้างข้อมูลเดิม (Icon) แล้วใส่รูปภาพแทน
+                container.innerHTML = '';
+                container.appendChild(img);
+                container.classList.add('loaded'); // ทำเครื่องหมายว่าโหลดแล้ว
+
+            } catch (err) {
+                console.warn(`Could not load preview for ${fileUrl}: ${err.message}`);
+                // ถ้าโหลดไม่ขึ้น ก็ให้โชว์ Icon Placeholder เดิมต่อไป
+            }
+        }));
+    },
+    async loadPdfPreviews() {
+        const containers = document.querySelectorAll('.pdf-preview-container:not(.loaded)');
+        if (containers.length === 0 || !State.pdfJS) return;
+
+        const token = localStorage.getItem("authToken");
+
+        containers.forEach(async (container) => {
+            const fileUrl = container.dataset.fileUrl;
+            try {
+                // 1. Fetch PDF พร้อม Token
+                const response = await fetch(fileUrl, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.arrayBuffer();
+
+                // 2. ใช้ PDF.js โหลดเอกสาร
+                const pdf = await State.pdfJS.getDocument({ data }).promise;
+                const page = await pdf.getPage(1); // ดึงหน้า 1
+
+                // 3. เตรียม Canvas สำหรับวาดรูป
+                const viewport = page.getViewport({ scale: 0.3 }); // ปรับขนาดให้พอดี icon
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                // 4. วาด PDF ลง Canvas
+                await page.render({ canvasContext: context, viewport }).promise;
+
+                // 5. แปลง Canvas เป็นรูปภาพแล้วแสดงผล
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL();
+                img.className = 'file-preview-img loaded-preview';
+
+                container.innerHTML = '';
+                container.appendChild(img);
+                container.classList.add('loaded');
+            } catch (err) {
+                console.warn("PDF Preview failed for:", fileUrl);
+            }
+        });
     }
+
 };
 
 /**
@@ -280,13 +419,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. ผูกปุ่มต่างๆ กับฟังก์ชัน
     if (UI.backBtn) UI.backBtn.onclick = () => UI.navigateBackTo(State.pathNames.length - 2);
     if (UI.downloadBtn) UI.downloadBtn.onclick = () => Actions.handleDownload();
-    
+
     const viewBtn = document.getElementById('viewToggleBtn');
     if (viewBtn) {
         viewBtn.onclick = () => {
             State.viewMode = State.viewMode === 'grid' ? 'list' : 'grid';
-            viewBtn.innerHTML = State.viewMode === 'grid' 
-                ? '<i class="fa-solid fa-list"></i> <span>List View</span>' 
+            viewBtn.innerHTML = State.viewMode === 'grid'
+                ? '<i class="fa-solid fa-list"></i> <span>List View</span>'
                 : '<i class="fa-solid fa-grip"></i> <span>Grid View</span>';
             UI.render();
         };
@@ -296,8 +435,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (selectBtn) {
         selectBtn.onclick = () => {
             State.isSelectMode = !State.isSelectMode;
-            selectBtn.innerHTML = State.isSelectMode 
-                ? '<i class="fa-solid fa-xmark"></i> <span>Cancel</span>' 
+            selectBtn.innerHTML = State.isSelectMode
+                ? '<i class="fa-solid fa-xmark"></i> <span>Cancel</span>'
                 : '<i class="fa-solid fa-check-double"></i> <span>Select</span>';
             if (!State.isSelectMode) State.selectedFiles.clear();
             UI.render();
