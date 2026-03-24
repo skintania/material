@@ -1,3 +1,5 @@
+import { CONFIG } from '/config.js';
+
 const form = document.getElementById('registerForm');
 const username = document.getElementById('username');
 const password = document.getElementById('password');

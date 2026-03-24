@@ -35,7 +35,9 @@
     </div>
   </main>
 
-  <script>
+  <script type="module">
+    import { CONFIG } from '/config.js';
+
   document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("otpForm");
     const otpInput = document.getElementById("otp");
