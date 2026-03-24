@@ -1,389 +1,310 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. DOM Elements ---
-    const gridContainer = document.getElementById('coursesGrid');
-    const backBtn = document.getElementById('backBtn');
-    const currentPathText = document.getElementById('currentPathText');
-    const viewToggleBtn = document.getElementById('viewToggleBtn');
-    const selectBtn = document.getElementById('selectBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const selectedCountSpan = document.getElementById('selectedCount');
+import { CONFIG } from '/config.js';
 
-    // --- 2. State Variables ---
-    let subjectIcons = {};
-    let folderHistory = [];
-    let pathNames = ["Home"];
-    let currentItemsData = [];
-    let viewMode = 'grid';
-    let isSelectMode = false;
-    let selectedFiles = new Set();
+/**
+ * --- 1. STATE MANAGEMENT ---
+ * เก็บสถานะทั้งหมดของแอปไว้ที่นี่ที่เดียว
+ */
+const State = {
+    subjectIcons: {},
+    folderHistory: [],
+    pathNames: ["Home"],
+    currentItems: [],
+    viewMode: 'grid', // 'grid' หรือ 'list'
+    isSelectMode: false,
+    selectedFiles: new Set(),
+    pdfJS: window['pdfjs-dist/build/pdf']
+};
 
-    // --- 3. PDF.js Setup ---
-    const pdfJS = window['pdfjs-dist/build/pdf'];
-    if (pdfJS) {
-        pdfJS.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
+/**
+ * --- 2. API SERVICE ---
+ * จัดการการสื่อสารกับ Cloudflare Worker ทั้งหมด
+ */
+const DriveAPI = {
+    async fetchItems(path) {
+        // ดึง Token จาก localStorage (ชื่อ Key ต้องตรงกับตอน Login)
+        const token = localStorage.getItem("authToken");
 
-    const pdfObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const container = entry.target;
-                const link = container.dataset.link;
-                if (link) {
-                    generatePdfPreview(link, container);
-                    observer.unobserve(container);
-                }
+        const url = new URL(`${CONFIG.API_URL}/skdrive`);
+        if (path) url.searchParams.append('path', path);
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`, // 🔑 ส่งกุญแจยืนยันตัวตน
+                'Content-Type': 'application/json'
             }
         });
-    }, { rootMargin: '150px', threshold: 0.1 });
 
-    // --- 4. Core Logic Functions ---
-
-    async function init() {
-        try {
-            const iconResponse = await fetch('icons.json');
-            if (iconResponse.ok) subjectIcons = await iconResponse.json();
-            await loadDirectory('');
-        } catch (error) {
-            showError(`Initialization failed: ${error.message}`);
+        if (response.status === 401) {
+            console.error("🚫 Token ไม่ถูกต้องหรือหมดอายุ");
+            window.location.replace("/login/");
+            return [];
         }
-    }
 
-    async function loadDirectory(targetPath) {
-        gridContainer.innerHTML = '<div style="text-align:center; padding: 20px;">Loading...</div>';
-        try {
-            const url = targetPath
-                ? `https://skintania-api.skintania143.workers.dev/skdrive?path=${encodeURIComponent(targetPath)}`
-                : `https://skintania-api.skintania143.workers.dev/skdrive`;
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        
+        return await response.json();
+    },
 
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('API failed to return data');
-
-            const items = await response.json();
-            currentItemsData = items;
-            renderGrid(items);
-        } catch (error) {
-            showError(`Could not load folder: ${error.message}`);
-        }
-    }
-
-    async function getAllFilesFromFolder(apiPath, zipPrefix) {
+    async getDeepFiles(apiPath, zipPrefix) {
+        const items = await this.fetchItems(apiPath);
         let files = [];
-        try {
-            const url = `https://skintania-api.skintania143.workers.dev/skdrive?path=${encodeURIComponent(apiPath)}`;
-            const response = await fetch(url);
-            const items = await response.json();
 
-            for (const item of items) {
-                if (item.type === 'file') {
-                    // We attach the prefix (e.g., "Folder A/") to the filename
-                    files.push({
-                        link: item.link,
-                        zipPath: `${zipPrefix}/${item.name}`
-                    });
-                } else if (item.type === 'folder') {
-                    // Dig deeper, adding this folder name to the prefix
-                    const subFiles = await getAllFilesFromFolder(
-                        `${apiPath}/${item.name}`,
-                        `${zipPrefix}/${item.name}`
-                    );
-                    files.push(...subFiles);
-                }
+        for (const item of items) {
+            const itemPath = `${zipPrefix}/${item.name}`;
+            if (item.type === 'file') {
+                files.push({ link: item.link, zipPath: itemPath });
+            } else {
+                const subFiles = await this.getDeepFiles(`${apiPath}/${item.name}`, itemPath);
+                files.push(...subFiles);
             }
-        } catch (e) {
-            console.error("Deep fetch error:", e);
         }
         return files;
     }
+};
 
-    function updateDownloadBtn() {
-        if (!downloadBtn || !selectedCountSpan) return;
-        const count = selectedFiles.size;
-        selectedCountSpan.textContent = count;
-        downloadBtn.style.display = count > 0 ? 'flex' : 'none';
-    }
+/**
+ * --- 3. UI & RENDERING ---
+ * จัดการการแสดงผลบนหน้าจอ (DOM)
+ */
+const UI = {
+    grid: document.getElementById('coursesGrid'),
+    backBtn: document.getElementById('backBtn'),
+    pathText: document.getElementById('currentPathText'),
+    downloadBtn: document.getElementById('downloadBtn'),
+    countSpan: document.getElementById('selectedCount'),
 
-    function renderGrid(items) {
-        gridContainer.innerHTML = '';
-        pdfObserver.disconnect();
+    render() {
+        if (!this.grid) return;
+        this.grid.innerHTML = '';
+        this.updateBreadcrumbs();
+        this.grid.className = State.viewMode === 'list' ? 'grid list-view' : 'grid';
+        this.backBtn.disabled = State.folderHistory.length === 0;
 
-        // Breadcrumbs
-        currentPathText.innerHTML = '';
-        pathNames.forEach((name, index) => {
-            const isLast = index === pathNames.length - 1;
-            const span = document.createElement('span');
-            span.className = 'breadcrumb-link';
-            span.textContent = name;
-            if (!isLast) {
-                span.onclick = () => {
-                    const levelsToPop = pathNames.length - 1 - index;
-                    for (let i = 0; i < levelsToPop; i++) {
-                        pathNames.pop();
-                        folderHistory.pop();
-                    }
-                    loadDirectory(pathNames.slice(1).join('/'));
-                };
-                currentPathText.appendChild(span);
-                const sep = document.createElement('span');
-                sep.className = 'path-separator';
-                sep.textContent = ' > ';
-                currentPathText.appendChild(sep);
-            } else {
-                span.style.color = '#e6eef8';
-                currentPathText.appendChild(span);
-            }
-        });
-
-        backBtn.disabled = (folderHistory.length === 0);
-        gridContainer.className = viewMode === 'list' ? 'grid list-view' : 'grid';
-
-        if (!items || items.length === 0) {
-            gridContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: gray;">Folder is empty</div>';
+        if (!State.currentItems || State.currentItems.length === 0) {
+            this.grid.innerHTML = '<div style="text-align:center; padding:40px; color:gray;">Folder is empty</div>';
             return;
         }
 
-        items.forEach(item => {
-            const isFile = item.type === 'file';
-            const card = document.createElement(isFile ? 'a' : 'div');
-            card.className = 'drive-card';
-            if (selectedFiles.has(item.link)) card.classList.add('selected');
+        State.currentItems.forEach(item => this.createCard(item));
+    },
 
-            const footer = document.createElement('div');
-            footer.className = 'card-footer';
+    createCard(item) {
+        const isFile = item.type === 'file';
+        const card = document.createElement(isFile ? 'a' : 'div');
+        card.className = `drive-card ${this.isSelected(item) ? 'selected' : ''}`;
+        
+        card.innerHTML = `
+            ${this.getIconHtml(item)}
+            <div class="card-footer">
+                <input type="checkbox" class="item-checkbox" 
+                    ${State.isSelectMode ? 'style="display:block"' : 'style="display:none"'}
+                    ${this.isSelected(item) ? 'checked' : ''}>
+                <div class="drive-name">${item.name}</div>
+            </div>
+        `;
 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'item-checkbox';
-            checkbox.checked = selectedFiles.has(item.link);
-            checkbox.style.display = isSelectMode ? 'block' : 'none';
+        if (isFile && !State.isSelectMode) {
+            card.href = item.link;
+            card.target = '_blank';
+        }
 
-            checkbox.onclick = (e) => {
-                e.stopPropagation();
-                // Create a unique ID for this specific item in this specific folder
-                const currentDir = pathNames.slice(1).join('/');
-                const itemID = currentDir ? `${currentDir}/${item.name}` : item.name;
-
-                if (checkbox.checked) {
-                    // Store the whole object as a JSON string so we don't lose data
-                    selectedFiles.add(JSON.stringify({
-                        name: item.name,
-                        link: item.link,
-                        type: item.type,
-                        fullPath: itemID
-                    }));
-                    card.classList.add('selected');
-                } else {
-                    // Find and remove the matching item
-                    for (let selected of selectedFiles) {
-                        const parsed = JSON.parse(selected);
-                        if (parsed.fullPath === itemID) {
-                            selectedFiles.delete(selected);
-                            break;
-                        }
-                    }
-                    card.classList.remove('selected');
-                }
-                updateDownloadBtn();
-            };
-
-            const nameLabel = document.createElement('div');
-            nameLabel.className = 'drive-name';
-            nameLabel.textContent = item.name;
-
-            footer.appendChild(checkbox);
-            footer.appendChild(nameLabel);
-
-            card.innerHTML = getIconHtml(item);
-            card.appendChild(footer);
-
-            if (isFile && !isSelectMode) {
-                card.href = item.link;
-                card.target = '_blank';
+        card.onclick = (e) => {
+            if (State.isSelectMode) {
+                e.preventDefault();
+                this.toggleSelection(item, card);
+            } else if (!isFile) {
+                this.navigateForward(item);
             }
+        };
 
-            gridContainer.appendChild(card);
+        this.grid.appendChild(card);
+    },
 
-            if (viewMode === 'grid' && isFile && item.name.toLowerCase().endsWith('.pdf')) {
-                const container = card.querySelector('.pdf-container');
-                if (container) {
-                    container.dataset.link = item.link;
-                    pdfObserver.observe(container);
-                }
-            }
-
-            card.addEventListener('click', (e) => {
-                if (isSelectMode) {
-                    e.preventDefault();
-                    checkbox.click();
-                    return;
-                }
-                if (!isFile) {
-                    folderHistory.push(items);
-                    pathNames.push(item.name);
-                    loadDirectory(pathNames.slice(1).join('/'));
-                }
-            });
-        });
-    }
-
-    function getIconHtml(item) {
+    getIconHtml(item) {
         if (item.type === 'folder') {
-            const isHome = folderHistory.length === 0;
-            const iconClass = isHome ? (subjectIcons[item.name] || 'fa-solid fa-folder') : 'fa-solid fa-folder';
-            return `<div class="drive-icon"><i class="${iconClass}"></i></div>`;
+            const isHome = State.folderHistory.length === 0;
+            const icon = isHome ? (State.subjectIcons[item.name] || 'fa-folder') : 'fa-folder';
+            return `<div class="drive-icon"><i class="fa-solid ${icon}"></i></div>`;
         }
-
+        
         const ext = item.name.split('.').pop().toLowerCase();
-        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+        if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
+            return `<div class="drive-icon"><img src="${item.link}" class="file-preview-img" loading="lazy"/></div>`;
+        }
+        
+        const iconClass = ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-lines';
+        const iconStyle = ext === 'pdf' ? 'style="color:#e74c3c;"' : '';
+        return `<div class="drive-icon"><i class="fa-solid ${iconClass}" ${iconStyle}></i></div>`;
+    },
 
-        if (imageExtensions.includes(ext)) {
-            return `<div class="drive-icon"><img src="${item.link}" alt="${item.name}" class="file-preview-img" loading="lazy"/></div>`;
-        } else if (ext === 'pdf' && viewMode !== 'list') {
-            return `<div class="drive-icon pdf-container">
-                        <div class="loader"></div>
-                        <canvas class="pdf-preview-canvas"></canvas>
-                        <i class="fa-solid fa-file-pdf fallback-icon" style="display:none; color:#e74c3c;"></i>
-                    </div>`;
+    updateBreadcrumbs() {
+        if (!this.pathText) return;
+        this.pathText.innerHTML = '';
+        State.pathNames.forEach((name, i) => {
+            const span = document.createElement('span');
+            span.className = 'breadcrumb-link';
+            span.textContent = name;
+            span.onclick = () => this.navigateBackTo(i);
+            this.pathText.appendChild(span);
+            
+            if (i < State.pathNames.length - 1) {
+                const sep = document.createElement('span');
+                sep.className = 'path-separator';
+                sep.textContent = ' > ';
+                this.pathText.appendChild(sep);
+            }
+        });
+    },
+
+    isSelected(item) {
+        const currentPath = State.pathNames.slice(1).join('/');
+        const id = currentPath ? `${currentPath}/${item.name}` : item.name;
+        return [...State.selectedFiles].some(f => JSON.parse(f).fullPath === id);
+    },
+
+    toggleSelection(item, cardElement) {
+        const currentPath = State.pathNames.slice(1).join('/');
+        const itemID = currentPath ? `${currentPath}/${item.name}` : item.name;
+        const checkbox = cardElement.querySelector('.item-checkbox');
+        const itemData = JSON.stringify({ ...item, fullPath: itemID });
+
+        if (!checkbox.checked) {
+            State.selectedFiles.add(itemData);
+            cardElement.classList.add('selected');
+            checkbox.checked = true;
         } else {
-            const iconColor = ext === 'pdf' ? '#e74c3c' : 'inherit';
-            return `<div class="drive-icon"><i class="fa-solid ${ext === 'pdf' ? 'fa-file-pdf' : 'fa-file-lines'}" style="color:${iconColor}"></i></div>`;
+            for (let s of State.selectedFiles) {
+                if (JSON.parse(s).fullPath === itemID) State.selectedFiles.delete(s);
+            }
+            cardElement.classList.remove('selected');
+            checkbox.checked = false;
         }
-    }
+        this.updateDownloadUI();
+    },
 
-    async function generatePdfPreview(url, container) {
-        const canvas = container.querySelector('.pdf-preview-canvas');
-        const loader = container.querySelector('.loader');
-        const fallbackIcon = container.querySelector('.fallback-icon');
-        if (!canvas) return;
+    updateDownloadUI() {
+        if (!this.downloadBtn) return;
+        const count = State.selectedFiles.size;
+        this.countSpan.textContent = count;
+        this.downloadBtn.style.display = count > 0 ? 'flex' : 'none';
+    },
+
+    navigateForward(item) {
+        State.folderHistory.push([...State.currentItems]);
+        State.pathNames.push(item.name);
+        Actions.loadCurrentPath();
+    },
+
+    navigateBackTo(index) {
+        const pops = State.pathNames.length - 1 - index;
+        if (pops <= 0) return;
+        for (let i = 0; i < pops; i++) {
+            State.pathNames.pop();
+            State.folderHistory.pop();
+        }
+        Actions.loadCurrentPath();
+    }
+};
+
+/**
+ * --- 4. ACTION CONTROLLERS ---
+ * ตัวเชื่อมโยงระหว่าง API และ UI
+ */
+const Actions = {
+    async loadCurrentPath() {
         try {
-            const loadingTask = pdfJS.getDocument(url);
-            const pdf = await loadingTask.promise;
-            const page = await pdf.getPage(1);
-            const viewport = page.getViewport({ scale: 0.4 });
-            const context = canvas.getContext('2d');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-            await page.render({ canvasContext: context, viewport: viewport }).promise;
-            if (loader) loader.style.display = 'none';
-            canvas.style.display = 'block';
+            const path = State.pathNames.slice(1).join('/');
+            State.currentItems = await DriveAPI.fetchItems(path);
+            UI.render();
+        } catch (err) {
+            console.error(err);
+            UI.grid.innerHTML = `<p style="color:red; text-align:center;">Could not load folder: ${err.message}</p>`;
+        }
+    },
+
+    async handleDownload() {
+        if (typeof JSZip === 'undefined') {
+            alert("JSZip library not found!");
+            return;
+        }
+        const zip = new JSZip();
+        UI.downloadBtn.disabled = true;
+        const originalText = UI.downloadBtn.innerHTML;
+        UI.downloadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparing...';
+
+        try {
+            let files = [];
+            for (let json of State.selectedFiles) {
+                const item = JSON.parse(json);
+                if (item.type === 'folder') {
+                    files.push(...(await DriveAPI.getDeepFiles(item.fullPath, item.name)));
+                } else {
+                    files.push({ link: item.link, zipPath: item.name });
+                }
+            }
+
+            UI.downloadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Downloading ${files.length} files...`;
+
+            await Promise.all(files.map(async f => {
+                const res = await fetch(f.link);
+                const blob = await res.blob();
+                zip.file(f.zipPath, blob);
+            }));
+
+            const content = await zip.generateAsync({ type: "blob" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(content);
+            link.download = `Skintania_Archive_${Date.now()}.zip`;
+            link.click();
         } catch (e) {
-            if (loader) loader.style.display = 'none';
-            if (fallbackIcon) fallbackIcon.style.display = 'block';
+            alert("Download failed: " + e.message);
+        } finally {
+            UI.downloadBtn.disabled = false;
+            UI.downloadBtn.innerHTML = originalText;
         }
     }
+};
 
-    // --- 5. Event Listeners ---
+/**
+ * --- 5. INITIALIZATION ---
+ * เริ่มทำงานเมื่อโหลดหน้าเว็บเสร็จ
+ */
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. โหลดไอคอนวิชา
+    try {
+        const iconRes = await fetch('icons.json');
+        if (iconRes.ok) State.subjectIcons = await iconRes.json();
+    } catch (e) { console.warn("Icons not loaded"); }
 
-    if (viewToggleBtn) {
-        viewToggleBtn.addEventListener('click', () => {
-            viewMode = viewMode === 'grid' ? 'list' : 'grid';
-            // ADD <span> HERE:
-            viewToggleBtn.innerHTML = viewMode === 'grid' 
+    // 2. ผูกปุ่มต่างๆ กับฟังก์ชัน
+    if (UI.backBtn) UI.backBtn.onclick = () => UI.navigateBackTo(State.pathNames.length - 2);
+    if (UI.downloadBtn) UI.downloadBtn.onclick = () => Actions.handleDownload();
+    
+    const viewBtn = document.getElementById('viewToggleBtn');
+    if (viewBtn) {
+        viewBtn.onclick = () => {
+            State.viewMode = State.viewMode === 'grid' ? 'list' : 'grid';
+            viewBtn.innerHTML = State.viewMode === 'grid' 
                 ? '<i class="fa-solid fa-list"></i> <span>List View</span>' 
                 : '<i class="fa-solid fa-grip"></i> <span>Grid View</span>';
-            renderGrid(currentItemsData);
-        });
+            UI.render();
+        };
     }
 
+    const selectBtn = document.getElementById('selectBtn');
     if (selectBtn) {
-        selectBtn.addEventListener('click', () => {
-            isSelectMode = !isSelectMode;
-            gridContainer.classList.toggle('selecting', isSelectMode);
-            // ADD <span> HERE:
-            selectBtn.innerHTML = isSelectMode 
+        selectBtn.onclick = () => {
+            State.isSelectMode = !State.isSelectMode;
+            selectBtn.innerHTML = State.isSelectMode 
                 ? '<i class="fa-solid fa-xmark"></i> <span>Cancel</span>' 
                 : '<i class="fa-solid fa-check-double"></i> <span>Select</span>';
-            
-            if (!isSelectMode) {
-                selectedFiles.clear();
-                updateDownloadBtn();
-            }
-            renderGrid(currentItemsData);
-        });
+            if (!State.isSelectMode) State.selectedFiles.clear();
+            UI.render();
+            UI.updateDownloadUI();
+        };
     }
 
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', async () => {
-            if (selectedFiles.size === 0) return;
-
-            const MAX_SIZE_MB = 100; // Set your limit here (e.g., 100MB)
-            const zip = new JSZip();
-            const originalHTML = downloadBtn.innerHTML;
-            downloadBtn.disabled = true;
-            downloadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Calculating size...';
-
-            try {
-                let allFilesToDownload = [];
-                let totalSizeBytes = 0;
-
-                // 1. Map all files and folders
-                for (let jsonString of selectedFiles) {
-                    const item = JSON.parse(jsonString);
-                    if (item.type === 'folder') {
-                        const folderContents = await getAllFilesFromFolder(item.fullPath, item.name);
-                        allFilesToDownload.push(...folderContents);
-                    } else {
-                        allFilesToDownload.push({ link: item.link, zipPath: item.name });
-                    }
-                }
-
-                // 2. Check sizes using HEAD requests
-                downloadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking limits...';
-                
-                const sizePromises = allFilesToDownload.map(async (file) => {
-                    try {
-                        const res = await fetch(file.link, { method: 'HEAD' });
-                        const size = res.headers.get('content-length');
-                        if (size) totalSizeBytes += parseInt(size, 10);
-                    } catch (e) {
-                        console.warn("Could not determine size for:", file.zipPath);
-                    }
-                });
-
-                await Promise.all(sizePromises);
-
-                // 3. Abort if too large
-                const totalMB = totalSizeBytes / (1024 * 1024);
-                if (totalMB > MAX_SIZE_MB) {
-                    alert(`Download Aborted: The total size (${totalMB.toFixed(1)}MB) exceeds the ${MAX_SIZE_MB}MB limit. Please download a smaller group of files.`);
-                    return; // Stop here
-                }
-
-                // 4. Proceed with Download
-                downloadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Fetching ${allFilesToDownload.length} files...`;
-
-                await Promise.all(allFilesToDownload.map(async (file) => {
-                    const res = await fetch(file.link);
-                    const blob = await res.blob();
-                    zip.file(file.zipPath, blob);
-                }));
-
-                const content = await zip.generateAsync({ type: "blob" });
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(content);
-                link.download = `Skintania_Archive_${Date.now()}.zip`;
-                link.click();
-
-            } catch (err) {
-                alert("Download failed: " + err.message);
-            } finally {
-                downloadBtn.disabled = false;
-                downloadBtn.innerHTML = originalHTML;
-            }
-        });
-    }
-
-    backBtn.addEventListener('click', () => {
-        if (folderHistory.length > 0) {
-            pathNames.pop();
-            const previousItems = folderHistory.pop();
-            currentItemsData = previousItems;
-            renderGrid(previousItems);
-        }
-    });
-
-    function showError(msg) {
-        gridContainer.innerHTML = `<p style="color:red; text-align:center;">${msg}</p>`;
-    }
-
-    init();
+    // 3. เริ่มโหลดข้อมูลโฟลเดอร์แรก
+    Actions.loadCurrentPath();
 });

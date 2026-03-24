@@ -1,7 +1,7 @@
 // auth-guard.js
 
 // 1. Import the CONFIG object exactly as you exported it
-import { CONFIG } from './config.js';
+import { CONFIG } from '/config.js';
 
 async function checkSecurityStatus() {
   try {

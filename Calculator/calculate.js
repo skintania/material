@@ -1,3 +1,5 @@
+import { CONFIG } from '/config.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('calbutton').addEventListener('click', function () {
 
@@ -28,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const departElement = document.getElementById('depart');
         const departCode = departElement?.getAttribute('data-value')?.trim();
+        const token = localStorage.getItem("authToken");
 
         if (!departCode) {
             alert('กรุณาเลือกภาคก่อนคำนวณ');
@@ -35,14 +38,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         Promise.all([
-            fetch(`${CONFIG.API_URL}/asset?file=Calculator/weight.json`).then(res => {
-                if (!res.ok) throw new Error('ไม่สามารถโหลดไฟล์น้ำหนักได้');
-                return res.json();
-            }),
-            fetch(`${CONFIG.API_URL}/asset?file=Calculator/data.json`).then(res => {
-                if (!res.ok) throw new Error('ไม่สามารถโหลดข้อมูลคะแนนย้อนหลังได้');
-                return res.json();
+            fetch(`${CONFIG.API_URL}/asset?file=Calculator/weight.json`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             })
+
+                .then(res => {
+                    if (!res.ok) throw new Error('ไม่สามารถโหลดไฟล์น้ำหนักได้');
+                    return res.json();
+                }),
+
+            fetch(`${CONFIG.API_URL}/asset?file=Calculator/data.json`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('ไม่สามารถโหลดข้อมูลคะแนนย้อนหลังได้');
+                    return res.json();
+                })
         ])
             .then(([weightData, historyData]) => {
                 const weights = weightData[departCode];
