@@ -24,21 +24,39 @@ async function fetchEvents() {
     }
 }
 
+async function loadImageWithAuth(url) {
+    const token = localStorage.getItem('authToken') || '';
+    if (!url || !url.includes('asset?file=')) return url; // ถ้าเป็น URL ภายนอกให้ส่งกลับเลย
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Photo Load Failed');
+
+        const blob = await response.blob();
+        return URL.createObjectURL(blob); // สร้าง URL ชั่วคราวที่ <img> ใช้ได้
+    } catch (err) {
+        console.error("Image Auth Error:", err);
+        return 'https://via.placeholder.com/150?text=Error'; // รูปสำรองถ้าโหลดไม่ได้
+    }
+}
+
 // ==========================================
 // 2. ฟังก์ชันสำหรับสร้างโพสต์ลงหน้าเว็บ (UI)
 // ==========================================
-function renderEvents(data, gridElement) {
-    // ล้างข้อมูลเก่าก่อน (เผื่อกรณีเรียกใช้ฟังก์ชันนี้ซ้ำเพื่อรีเฟรชหน้า)
+async function renderEvents(data, gridElement) {
     gridElement.innerHTML = '';
 
-    // ถ้าไม่มีข้อมูล หรือ API Error ให้แสดงข้อความแจ้งเตือน
-    if (!data) {
-        gridElement.innerHTML = '<p style="color:red; text-align:center;">ไม่สามารถโหลดข้อมูลกิจกรรมได้</p>';
+    if (!data || Object.keys(data).length === 0) {
+        gridElement.innerHTML = '<p style="color:red; text-align:center; grid-column: 1/-1;">ไม่สามารถโหลดข้อมูลกิจกรรมได้</p>';
         return;
     }
 
-    // ลอจิกการสร้าง UI คงเดิมทั้งหมด
-    Object.keys(data).forEach(eventKey => {
+    // 🌟 เปลี่ยนมาใช้ for...of เพื่อให้สามารถใช้ await โหลดรูปในลูปได้
+    for (const eventKey of Object.keys(data)) {
         const eventItem = data[eventKey];
         const card = document.createElement('article');
         card.className = 'card';
@@ -50,39 +68,30 @@ function renderEvents(data, gridElement) {
 
         const typeTag = document.createElement('span');
         typeTag.innerText = eventItem.type;
-        typeTag.style.fontSize = '12px';
-        typeTag.style.padding = '2px 8px';
-        typeTag.style.borderRadius = '4px';
-        typeTag.style.background = 'rgba(59, 130, 246, 0.2)';
-        typeTag.style.color = '#3b82f6';
+        typeTag.style.cssText = 'font-size: 12px; padding: 2px 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.2); color: #3b82f6;';
         card.appendChild(typeTag);
 
         // --- 2. แยกการแสดงผลตามประเภท ---
+        
+        // --- กรณี POLL ---
         if (eventItem.type === 'Poll' && Array.isArray(eventItem.choice)) {
-            // --- แบบ POLL ---
-            const images = Array.isArray(eventItem.imgLink) ? eventItem.imgLink : [eventItem.imgLink];
             const voteScores = Array.isArray(eventItem.vote_score) ? eventItem.vote_score : [];
             const totalVotes = voteScores.reduce((acc, value) => acc + Number(value || 0), 0);
 
             const pollContainer = document.createElement('div');
-            pollContainer.style.marginTop = '15px';
-            pollContainer.style.display = 'flex';
-            pollContainer.style.flexDirection = 'column';
-            pollContainer.style.gap = '15px';
+            pollContainer.style.cssText = 'margin-top: 15px; display: flex; flex-direction: column; gap: 15px;';
 
-            eventItem.choice.forEach((choice, i) => {
+            for (let i = 0; i < eventItem.choice.length; i++) {
+                const choice = eventItem.choice[i];
                 const row = document.createElement('div');
-                row.style.display = 'flex';
-                row.style.alignItems = 'center';
-                row.style.gap = '15px';
-                row.style.marginBottom = '15px';
+                row.style.cssText = 'display: flex; align-items: center; gap: 15px; margin-bottom: 15px;';
 
                 const img = document.createElement('img');
-                img.src = images[i] || images[0];
-                img.style.width = '150px';
-                img.style.borderRadius = '8px';
-                img.style.objectFit = 'cover';
-                img.style.flexShrink = '0';
+                // 🌟 ดึงรูปผ่าน Token
+                const rawImgUrl = Array.isArray(eventItem.imgLink) ? (eventItem.imgLink[i] || eventItem.imgLink[0]) : eventItem.imgLink;
+                img.src = await loadImageWithAuth(rawImgUrl); 
+                
+                img.style.cssText = 'width: 200px; max-height: 500px; border-radius: 8px; object-fit: contain; flex-shrink: 0; background: rgba(0,0,0,0.1);';
 
                 const pollContent = document.createElement('div');
                 pollContent.style.flexGrow = '1';
@@ -101,28 +110,22 @@ function renderEvents(data, gridElement) {
                 `;
 
                 const checkContainer = document.createElement('div');
-                checkContainer.style.flexShrink = '0';
-
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
-                checkbox.style.width = '20px';
-                checkbox.style.height = '20px';
-                checkbox.style.cursor = 'pointer';
+                checkbox.style.cssText = 'width: 20px; height: 20px; cursor: pointer;';
 
                 if (eventItem.lastVotedIndex === undefined) eventItem.lastVotedIndex = null;
-
-                if (eventItem.userVotedIndex !== undefined && eventItem.userVotedIndex === i) {
-                    checkbox.checked = true; // สั่งให้ติ๊กถูกทันที
-                    eventItem.lastVotedIndex = i; // จำไว้ว่าเราติ๊กช่องนี้นะ
+                if (eventItem.userVotedIndex === i) {
+                    checkbox.checked = true;
+                    eventItem.lastVotedIndex = i;
                 }
 
+                // Listener สำหรับการโหวต
                 checkbox.addEventListener('change', async (e) => {
                     const allChecks = pollContainer.querySelectorAll('input[type="checkbox"]');
-                    let action = 'unvote'; // กำหนดค่าเริ่มต้นเป็นยกเลิกโหวต
+                    let action = e.target.checked ? 'vote' : 'unvote';
 
-                    // 1. จัดการ UI เปลี่ยนตัวเลขโหวต (โค้ดเดิมของคุณ)
                     if (e.target.checked) {
-                        action = 'vote'; // เปลี่ยนเป็นโหวต
                         if (eventItem.lastVotedIndex !== null && eventItem.lastVotedIndex !== i) {
                             eventItem.vote_score[eventItem.lastVotedIndex]--;
                             allChecks[eventItem.lastVotedIndex].checked = false;
@@ -134,44 +137,23 @@ function renderEvents(data, gridElement) {
                         eventItem.lastVotedIndex = null;
                     }
 
-                    // ==========================================
-                    // 🌟 2. วางโค้ด fetch ยิง API ไป D1 ตรงนี้! 🌟
-                    // ==========================================
+                    // ยิง API บันทึกโหวต
                     try {
                         const token = localStorage.getItem('authToken') || '';
-
-                        // ส่ง API ไปเงียบๆ เบื้องหลัง
-                        const response = await fetch(`${CONFIG.API_URL}/event/vote`, {
+                        await fetch(`${CONFIG.API_URL}/event/vote`, {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({
-                                eventId: eventKey,  // รหัส Event
-                                choiceName: choice, // ชื่อตัวเลือก (เช่น "เอิง")
-                                action: action      // "vote" หรือ "unvote"
-                            })
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ eventId: eventKey, choiceName: choice, action: action })
                         });
+                    } catch (err) { console.error("Vote API Error:", err); }
 
-                        if (!response.ok) {
-                            console.error("บันทึกโหวตไม่สำเร็จ");
-                            // ถ้ายิง API ไม่ผ่าน อาจจะแจ้งเตือนผู้ใช้ตรงนี้
-                        }
-                    } catch (err) {
-                        console.error("API Error:", err);
-                    }
-                    // ==========================================
-
-                    // 3. --- RE-CALCULATE AND UPDATE UI --- (โค้ดอัปเดตหลอดเปอร์เซ็นต์เดิมของคุณ)
+                    // Update UI เปอร์เซ็นต์หลอด
                     const newTotal = eventItem.vote_score.reduce((a, b) => a + Number(b), 0);
                     const allBars = pollContainer.querySelectorAll('.progress-bar');
                     const allTexts = pollContainer.querySelectorAll('.vote-text');
-
                     eventItem.choice.forEach((_, idx) => {
                         const v = Number(eventItem.vote_score[idx]);
                         const p = newTotal > 0 ? (v / newTotal) * 100 : 0;
-
                         allBars[idx].style.width = `${p}%`;
                         allTexts[idx].innerText = `${v} โหวต (${p.toFixed(0)}%)`;
                     });
@@ -182,44 +164,29 @@ function renderEvents(data, gridElement) {
                 row.appendChild(pollContent);
                 row.appendChild(checkContainer);
                 pollContainer.appendChild(row);
-            });
-
+            }
             card.appendChild(pollContainer);
 
-        } else if (eventItem.type === 'Activity') {
-            // --- แบบ ACTIVITY ---
+        } 
+        // --- กรณี ACTIVITY ---
+        else if (eventItem.type === 'Activity') {
             const activityContainer = document.createElement('div');
-            activityContainer.style.marginTop = '15px';
-            activityContainer.style.display = 'flex';
-            activityContainer.style.alignItems = 'center';
-            activityContainer.style.gap = '15px';
+            activityContainer.style.cssText = 'margin-top: 15px; display: flex; align-items: center; gap: 15px;';
 
             if (eventItem.imgLink) {
                 const sideImg = document.createElement('img');
-                sideImg.src = Array.isArray(eventItem.imgLink) ? eventItem.imgLink[0] : eventItem.imgLink;
-                sideImg.style.width = '30%';
-                sideImg.style.borderRadius = '10px';
-                sideImg.style.objectFit = 'cover';
+                const rawImgUrl = Array.isArray(eventItem.imgLink) ? eventItem.imgLink[0] : eventItem.imgLink;
+                sideImg.src = await loadImageWithAuth(rawImgUrl);
+                sideImg.style.cssText = 'max-height: 500px; width: 30%; border-radius: 10px; object-fit: cover; background: #222;';
                 activityContainer.appendChild(sideImg);
             }
 
             const textContent = document.createElement('div');
             textContent.style.flexGrow = '1';
-
-            if (eventItem.description) {
-                const desc = document.createElement('p');
-                desc.style.margin = '0 0 5px 0';
-                desc.classList.add('event-description');
-                desc.innerText = eventItem.description;
-                textContent.appendChild(desc);
-            }
-
-            const partP = document.createElement('div');
-            partP.style.fontSize = '13px';
-            partP.style.color = '#10b981';
-            partP.innerText = `👥 ผู้เข้าร่วม: ${eventItem.participants || 0} คน`;
-            textContent.appendChild(partP);
-            activityContainer.appendChild(textContent);
+            textContent.innerHTML = `
+                <p class="event-description" style="margin: 0 0 5px 0;">${eventItem.description || ''}</p>
+                <div class="participant-count" style="font-size: 13px; color: #10b981;">👥 ผู้เข้าร่วม: ${eventItem.participants || 0} คน</div>
+            `;
 
             const joinBox = document.createElement('div');
             joinBox.style.textAlign = 'center';
@@ -228,49 +195,64 @@ function renderEvents(data, gridElement) {
                 <label for="chk-${eventKey}" style="font-size:12px; cursor:pointer; color:#94a3b8;">เข้าร่วม</label>
             `;
 
-            joinBox.querySelector('input').addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    eventItem.participants++;
-                    joinBox.querySelector('label').style.color = '#10b981';
-                } else {
-                    eventItem.participants--;
-                    joinBox.querySelector('label').style.color = '#94a3b8';
-                }
-                partP.innerText = `👥 ผู้เข้าร่วม: ${eventItem.participants} คน`;
+            const checkbox = joinBox.querySelector('input');
+            const label = joinBox.querySelector('label');
+            const partText = textContent.querySelector('.participant-count');
+
+            if (eventItem.userJoined) {
+                checkbox.checked = true;
+                label.style.color = '#10b981';
+            }
+
+            checkbox.addEventListener('change', async (e) => {
+                const isChecked = e.target.checked;
+                const action = isChecked ? 'join' : 'leave';
+                
+                if (isChecked) { eventItem.participants++; label.style.color = '#10b981'; } 
+                else { eventItem.participants--; label.style.color = '#94a3b8'; }
+                
+                partText.innerText = `👥 ผู้เข้าร่วม: ${eventItem.participants} คน`;
+
+                try {
+                    const token = localStorage.getItem('authToken') || '';
+                    fetch(`${CONFIG.API_URL}/event/join`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ eventId: eventKey, action: action })
+                    });
+                } catch (err) { console.error("Join API Error:", err); }
             });
 
+            activityContainer.appendChild(textContent);
             activityContainer.appendChild(joinBox);
             card.appendChild(activityContainer);
 
-        } else {
-            // --- แบบ ANNOUNCEMENT ---
+        } 
+        // --- กรณี ANNOUNCEMENT ---
+        else {
             const announceContainer = document.createElement('div');
             announceContainer.style.marginTop = '15px';
 
             if (eventItem.imgLink) {
                 const fullImg = document.createElement('img');
-                fullImg.src = Array.isArray(eventItem.imgLink) ? eventItem.imgLink[0] : eventItem.imgLink;
-                fullImg.style.width = '100%';
-                fullImg.style.maxHeight = '200px';
-                fullImg.style.borderRadius = '8px';
-                fullImg.style.objectFit = 'cover';
-                fullImg.style.marginBottom = '10px';
+                const rawImgUrl = Array.isArray(eventItem.imgLink) ? eventItem.imgLink[0] : eventItem.imgLink;
+                fullImg.src = await loadImageWithAuth(rawImgUrl);
+                fullImg.style.cssText = 'width: 100%; max-height: 250px; border-radius: 8px; object-fit: cover; margin-bottom: 10px; background: #222;';
                 announceContainer.appendChild(fullImg);
             }
 
             if (eventItem.description) {
                 const desc = document.createElement('p');
-                desc.classList.add('event-description');
+                desc.className = 'event-description';
                 desc.style.lineHeight = '1.5';
                 desc.innerText = eventItem.description;
                 announceContainer.appendChild(desc);
             }
-
             card.appendChild(announceContainer);
         }
 
         gridElement.appendChild(card);
-    });
+    }
 }
 
 // ==========================================
