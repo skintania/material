@@ -89,6 +89,7 @@ async function renderEvents(data, gridElement) {
                 const img = document.createElement('img');
                 // 🌟 ดึงรูปผ่าน Token
                 const rawImgUrl = Array.isArray(eventItem.imgLink) ? (eventItem.imgLink[i] || eventItem.imgLink[0]) : eventItem.imgLink;
+                console.log(rawImgUrl)
                 img.src = await loadImageWithAuth(rawImgUrl); 
                 
                 img.style.cssText = 'width: 200px; max-height: 500px; border-radius: 8px; object-fit: contain; flex-shrink: 0; background: rgba(0,0,0,0.1);';
@@ -176,6 +177,7 @@ async function renderEvents(data, gridElement) {
             if (eventItem.imgLink) {
                 const sideImg = document.createElement('img');
                 const rawImgUrl = Array.isArray(eventItem.imgLink) ? eventItem.imgLink[0] : eventItem.imgLink;
+                console.log(rawImgUrl)
                 sideImg.src = await loadImageWithAuth(rawImgUrl);
                 sideImg.style.cssText = 'max-height: 500px; width: 30%; border-radius: 10px; object-fit: cover; background: #222;';
                 activityContainer.appendChild(sideImg);
@@ -236,6 +238,7 @@ async function renderEvents(data, gridElement) {
             if (eventItem.imgLink) {
                 const fullImg = document.createElement('img');
                 const rawImgUrl = Array.isArray(eventItem.imgLink) ? eventItem.imgLink[0] : eventItem.imgLink;
+                console.log(rawImgUrl)
                 fullImg.src = await loadImageWithAuth(rawImgUrl);
                 fullImg.style.cssText = 'width: 100%; max-height: 250px; border-radius: 8px; object-fit: cover; margin-bottom: 10px; background: #222;';
                 announceContainer.appendChild(fullImg);
