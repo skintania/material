@@ -88,12 +88,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       formData.append('choices', texts.join(','));
     } else {
-      formData.append('description', UI.form.description.value);
-      const fileInput = document.getElementById('singleImageInput');
-      // ถ้าไม่มีการเลือกไฟล์ จะไม่ append 'images' เพื่อให้ DB เก็บเป็น NULL
-      if (fileInput && fileInput.files.length > 0) {
-        formData.append('images', fileInput.files[0]);
-      }
+        // 🌟 แก้ไขตรงนี้: ดึงค่าและจัดการเรื่องการขึ้นบรรทัดใหม่
+        let descValue = UI.form.description.value;
+
+        // Normalize: เปลี่ยนการเคาะ Enter ให้เป็นมาตรฐาน \n 
+        // และตัดช่องว่างหน้า/หลังที่ผู้ใช้อาจเผลอกดทิ้งไป
+        descValue = descValue.trim().replace(/\r\n/g, '\n');
+
+        formData.append('description', descValue);
+        
+        const fileInput = document.getElementById('singleImageInput');
+        if (fileInput && fileInput.files.length > 0) {
+            formData.append('images', fileInput.files[0]);
+        }
     }
     return formData;
   };
@@ -114,23 +121,37 @@ document.addEventListener('DOMContentLoaded', () => {
   UI.typeSelect.onchange = (e) => toggleFormType(e.target.value);
   UI.pollCountSelect.onchange = (e) => renderPollChoices(e.target.value);
 
+  // 🌟 จุดที่ปรับแก้: แยกแยะระหว่าง "สร้างใหม่" กับ "แก้ไข" 🌟
   UI.form.onsubmit = async (e) => {
     e.preventDefault();
     UI.submitBtn.disabled = true;
-    UI.submitBtn.innerText = 'กำลังส่ง...';
+    
+    // เปลี่ยนข้อความปุ่มตามสถานะ
+    UI.submitBtn.innerText = window.editingEventId ? 'กำลังบันทึก...' : 'กำลังส่ง...';
 
     const token = localStorage.getItem('authToken');
     const data = getFormData();
 
+    // 🔴 1. ตั้งค่า API ปลายทางเริ่มต้นเป็น "สร้างใหม่"
+    let apiUrl = `${CONFIG.API_URL}/event/create`;
+
+    // 🔴 2. ถ้ามี ID โพสต์ค้างอยู่ แสดงว่าเป็นการ "แก้ไข"
+    if (window.editingEventId) {
+        apiUrl = `${CONFIG.API_URL}/event/edit`; // เปลี่ยนไปยิง API สำหรับ Edit
+        data.append('eventId', window.editingEventId); // แนบ ID เข้าไปใน FormData เพื่อให้ Backend รู้
+    }
+
     try {
-      const response = await fetch(`${CONFIG.API_URL}/event/create`, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: data
       });
 
       if (response.ok) {
-        alert('สร้างโพสต์สำเร็จ!');
+        // แจ้งเตือนตามสถานะ
+        alert(window.editingEventId ? 'อัปเดตโพสต์สำเร็จ! 🎉' : 'สร้างโพสต์สำเร็จ! 🎉');
+        window.editingEventId = null; // ล้างค่า ID หลังทำเสร็จ
         location.reload();
       } else {
         const err = await response.json();
@@ -140,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
     } finally {
       UI.submitBtn.disabled = false;
-      UI.submitBtn.innerText = 'โพสต์กิจกรรมเลย';
+      UI.submitBtn.innerText = 'โพสต์กิจกรรมเลย'; // คืนค่าข้อความปุ่ม
     }
   };
 
