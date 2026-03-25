@@ -60,16 +60,13 @@
                 <a href="#" class="nav-item" data-section="notifications">
                     <i class="fa-solid fa-bell"></i> การแจ้งเตือน
                 </a>
-                <a href="#" class="nav-item" data-section="notifications">
-                    <i class="fa-solid fa-bell"></i> การแจ้งเตือน
-                </a>
                 <a href="#" class="nav-item logout-item" data-section="delete-account" style="color: var(--danger);">
                     <i class="fa-solid fa-user-xmark"></i> ลบบัญชี
                 </a>
                 <hr class="nav-divider">
-                <a href="#" class="nav-item logout-item" id="settingsLogoutBtn">
-                    <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
-                </a>
+                <button type="button" id="settingsContentLogoutBtn" class="logout-text">
+                    ออกจากระบบ
+                </button>
             </nav>
         </aside>
 
@@ -174,7 +171,7 @@
                     <p>เปลี่ยนรหัสผ่านเพื่อความปลอดภัยของบัญชี</p>
                 </div>
 
-                <form class="settings-form" id="passwordForm">
+                <form class="settings-form" id="changePasswordForm">
                     <div class="form-group">
                         <label for="currentPassword">รหัสผ่านปัจจุบัน</label>
                         <input type="password" id="currentPassword" placeholder="••••••••" required>
@@ -183,63 +180,95 @@
                     <div class="form-row">
                         <div class="form-group flex-1">
                             <label for="newPassword">รหัสผ่านใหม่</label>
-                            <input type="password" id="newPassword" placeholder="••••••••" required>
+                            <input type="password" id="newPassword" placeholder="อย่างน้อย 8 ตัวอักษร" required
+                                minlength="8">
                         </div>
                         <div class="form-group flex-1">
-                            <label for="confirmPassword">ยืนยันรหัสผ่านใหม่</label>
-                            <input type="password" id="confirmPassword" placeholder="••••••••" required>
+                            <label for="confirmNewPassword">ยืนยันรหัสผ่านใหม่</label>
+                            <input type="password" id="confirmNewPassword" placeholder="กรอกรหัสผ่านใหม่อีกครั้ง"
+                                required minlength="8">
                         </div>
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn-primary">อัปเดตรหัสผ่าน</button>
+                        <button type="submit" id="savePasswordBtn" class="btn-primary">
+                            <i class="fa-solid fa-key"></i> อัปเดตรหัสผ่าน
+                        </button>
                     </div>
                 </form>
             </div>
 
             <div id="section-notifications" class="content-section">
                 <div class="section-header">
-                    <h2>การแจ้งเตือน</h2>
+                    <h2>การแจ้งเตือน (ยังใช้ไม่ได้)</h2>
                     <p>เลือกรับข้อมูลข่าวสารและการอัปเดตผ่านช่องทางต่างๆ</p>
                 </div>
-                <form class="settings-form">
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="checkbox" style="width: auto;" checked>
-                            รับการแจ้งเตือนผ่านอีเมลเมื่อมีการเข้าสู่ระบบใหม่
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="checkbox" style="width: auto;" checked> รับข่าวสารประชาสัมพันธ์จาก SkIntania
-                        </label>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-primary">บันทึกการตั้งค่า</button>
+
+                <form class="settings-form" id="notificationForm">
+                    <label class="toggle-item">
+                        <div class="toggle-info">
+                            <span class="toggle-title">ความปลอดภัยการเข้าสู่ระบบ</span>
+                            <span class="toggle-desc">รับการแจ้งเตือนผ่านอีเมลเมื่อมีการเข้าสู่ระบบใหม่</span>
+                        </div>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="notifyLogin" checked>
+                            <span class="slider round"></span>
+                        </div>
+                    </label>
+
+                    <label class="toggle-item">
+                        <div class="toggle-info">
+                            <span class="toggle-title">ข่าวสารจาก SkIntania</span>
+                            <span class="toggle-desc">รับข้อมูลข่าวสารประชาสัมพันธ์และโปรโมชันใหม่ๆ</span>
+                        </div>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="notifyNews" checked>
+                            <span class="slider round"></span>
+                        </div>
+                    </label>
+
+                    <div class="form-actions" style="margin-top: 2rem;">
+                        <button type="submit" id="saveNotiBtn" class="btn-primary">
+                            <i class="fa-solid fa-bell"></i> บันทึกการตั้งค่า
+                        </button>
                     </div>
                 </form>
             </div>
 
-            <div id="section-delete-account" class="content-section">
+            <div id="section-danger" class="content-section">
                 <div class="section-header">
-                    <h2 style="color: var(--danger);">ลบบัญชี</h2>
-                    <p>การลบบัญชีจะทำให้ข้อมูลทั้งหมดหายไปถาวร</p>
+                    <h2 style="color: #ff4d4d;">ลบบัญชี (ยังใช้ไม่ได้)</h2>
+                    <p>เมื่อลบบัญชีแล้ว ข้อมูลทั้งหมดจะถูกลบถาวรและไม่สามารถเรียกคืนได้</p>
                 </div>
-                <div class="settings-form">
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">
-                        เมื่อคุณลบบัญชี ข้อมูลโปรไฟล์ ประวัติ และสิทธิพิเศษต่างๆ จะไม่สามารถกู้คืนได้
-                    </p>
-                    <div class="form-actions" style="text-align: left; justify-content: flex-start;">
-                        <button type="button" class="btn-primary btn-danger-bg" onclick="confirmDeleteAccount()">
-                            <i class="fa-solid fa-trash-can"></i> ลบบัญชีถาวร
+
+                <div class="danger-zone">
+                    <div id="initialDeleteArea">
+                        <button type="button" id="startDeleteBtn" class="btn-danger-outline">
+                            <i class="fa-solid fa-user-xmark"></i> ลบบัญชีผู้ใช้
+                        </button>
+                    </div>
+
+                    <div id="confirmDeleteArea" class="confirm-box hidden">
+                        <p class="warning-text">⚠️ กรุณากรอกรหัสผ่านเพื่อยืนยันการลบบัญชี</p>
+                        <div class="form-group">
+                            <input type="password" id="deleteConfirmPassword" placeholder="รหัสผ่านของคุณ"
+                                class="danger-input">
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" id="cancelDeleteBtn" class="btn-secondary">ยกเลิก</button>
+                            <button type="button" id="finalDeleteBtn" class="btn-danger">
+                                ยืนยันการลบถาวร
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+    </div>
+    </section>
     </div>
 
     <script type="module" src="settings.js"></script>
+    <script type="module" src="changepassword.js"></script>
     <script type="module" src="/Template/component.js"></script>
 
 </body>

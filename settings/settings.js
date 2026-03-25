@@ -7,6 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelBtn = document.getElementById('cancelEditBtn');
     const profileForm = document.getElementById('profileForm');
     const imageUpload = document.getElementById('imageUpload');
+    const settingsLogoutBtn = document.getElementById('settingsContentLogoutBtn');
+    const notiForm = document.getElementById('notificationForm');
+
+    const startDeleteBtn = document.getElementById('startDeleteBtn');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteArea = document.getElementById('confirmDeleteArea');
+    const initialDeleteArea = document.getElementById('initialDeleteArea');
+    const finalDeleteBtn = document.getElementById('finalDeleteBtn');
 
     if (editBtn) editBtn.addEventListener('click', () => toggleEditMode(true));
     
@@ -43,6 +51,62 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             await updateUserData();
         });
+    }
+
+    if (settingsLogoutBtn) {
+        settingsLogoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log("Settings Logout Clicked!"); // เช็คใน Console ว่าขึ้นไหม
+            if (confirm("คุณต้องการออกจากระบบใช่หรือไม่?")) {
+                handleLogout();
+            }
+        });
+    }
+
+    if (notiForm) {
+        notiForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // ดึงค่ามาเตรียมส่ง API
+            const settings = {
+                loginNotify: document.getElementById('notifyLogin').checked,
+                newsNotify: document.getElementById('notifyNews').checked
+            };
+            
+            console.log("Saving settings:", settings);
+            alert("✅ บันทึกการตั้งค่าการแจ้งเตือนแล้ว (จำลอง)");
+        });
+    }
+
+    if (startDeleteBtn) {
+        startDeleteBtn.onclick = () => {
+            confirmDeleteArea.classList.remove('hidden');
+            initialDeleteArea.classList.add('hidden');
+        };
+    }
+
+    // 2. กดยกเลิก กลับไปที่เดิม
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.onclick = () => {
+            confirmDeleteArea.classList.add('hidden');
+            initialDeleteArea.classList.remove('hidden');
+            document.getElementById('deleteConfirmPassword').value = ''; // ล้างรหัส
+        };
+    }
+
+    // 3. กดยืนยันการลบจริงๆ
+    if (finalDeleteBtn) {
+        finalDeleteBtn.onclick = async () => {
+            const password = document.getElementById('deleteConfirmPassword').value;
+            if (!password) {
+                alert("กรุณากรอกรหัสผ่านเพื่อยืนยัน");
+                return;
+            }
+
+            if (confirm("🚨 คำเตือนสุดท้าย: บัญชีและข้อมูลทั้งหมดจะถูกลบถาวร ยืนยันใช่หรือไม่?")) {
+                await processDeleteAccount(password);
+            }
+        };
     }
 });
 
@@ -256,3 +320,38 @@ window.addEventListener('scroll', () => {
         }
     });
 });
+
+function handleLogout() {
+    localStorage.removeItem('authToken');
+    // ล้างข้อมูลอื่นๆ ถ้ามี เช่น userInfo
+    // localStorage.removeItem('userInfo'); 
+    window.location.href = '/login/';
+}
+
+async function processDeleteAccount(password) {
+    try {
+        const token = localStorage.getItem("authToken");
+        
+        // ส่งรหัสผ่านไปเช็คที่ Backend ก่อนลบ
+        const response = await fetch(`${CONFIG.API_URL}/user/delete-account`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password: password })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert("บัญชีของคุณถูกลบเรียบร้อยแล้ว หวังว่าจะได้พบกันใหม่");
+            localStorage.removeItem('authToken');
+            window.location.href = '/';
+        } else {
+            alert("❌ " + (result.error || "รหัสผ่านไม่ถูกต้อง"));
+        }
+    } catch (e) {
+        alert("⚠️ เกิดข้อผิดพลาด: " + e.message);
+    }
+}

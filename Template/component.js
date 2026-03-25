@@ -3,7 +3,6 @@ import { CONFIG } from '/config.js';
 // --- ฟังก์ชันช่วยโหลดรูปโปรไฟล์ผ่าน API (Shared Function) ---
 async function fetchAndSetAvatar(imgEl, iconEl, profilePath) {
     if (!profilePath || !imgEl || !iconEl) return;
-
     const token = localStorage.getItem("authToken");
     const finalUrl = profilePath.startsWith('http') ? profilePath : `${CONFIG.API_URL}${profilePath}`;
 
@@ -12,17 +11,13 @@ async function fetchAndSetAvatar(imgEl, iconEl, profilePath) {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-
         if (!response.ok) throw new Error("API failed");
-
         const blob = await response.blob();
         const objectUrl = URL.createObjectURL(blob);
-
         imgEl.src = objectUrl;
         imgEl.style.display = 'block';
         iconEl.style.display = 'none';
     } catch (e) {
-        console.warn("Avatar fetch failed, keeping default icon.");
         imgEl.style.display = 'none';
         iconEl.style.display = 'flex';
     }
@@ -38,26 +33,60 @@ class SiteHeader extends HTMLElement {
             const html = await response.text();
             this.innerHTML = html;
 
-            // ... (โค้ด Dynamic Title / Menu Toggle เดิมของคุณ) ...
+            // 1. Set Dynamic Text
             this.querySelector('#dynamic-title').textContent = pageTitle;
             this.querySelector('#dynamic-desc').textContent = pageDesc;
 
-            // --- เรียกใช้ Profile Sync ทันทีหลังจากใส่ HTML ลงในหน้า ---
-            this.syncHeaderProfile();
+            // 2. Menu Toggle Logic
+            const btn = this.querySelector('#menu-toggle');
+            const nav = this.querySelector('.navbar');
+            if (btn && nav) {
+                btn.onclick = () => {
+                    nav.classList.toggle('active');
+                    btn.innerHTML = nav.classList.contains('active') ? '✕' : '☰';
+                };
+            }
 
-            // ... (โค้ด Profile Dropdown / Logout เดิมของคุณ) ...
+            // 3. Profile Dropdown Logic
             const profileBtn = this.querySelector('#profileBtn');
             const dropdown = this.querySelector('#profileDropdown');
+            if (profileBtn && dropdown) {
+                profileBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const isVisible = dropdown.style.display === 'block';
+                    dropdown.style.display = isVisible ? 'none' : 'block';
+                    dropdown.style.opacity = isVisible ? '0' : '1';
+                    dropdown.style.visibility = isVisible ? 'hidden' : 'visible';
+                };
+                window.addEventListener('click', (e) => {
+                    if (!e.target.closest('.profile-dropdown')) {
+                        dropdown.style.display = 'none';
+                        dropdown.style.opacity = '0';
+                        dropdown.style.visibility = 'hidden';
+                    }
+                });
+            }
+
+            // 4. Logout Logic (เน้นจุดนี้)
             const logoutBtn = this.querySelector('#logoutBtn');
-            // (คงโค้ด Logic คลิกเปิด/ปิด Dropdown ไว้เหมือนเดิม)
+            if (logoutBtn) {
+                logoutBtn.onclick = (e) => {
+                    e.preventDefault();
+                    console.log("Logging out..."); // Debug
+                    localStorage.removeItem('authToken');
+                    window.location.href = '/login/';
+                };
+            }
+
+            // 5. ดึงรูปโปรไฟล์
+            this.initProfile();
 
         } catch (e) { 
-            console.error("Error loading header template:", e); 
+            console.error("Error loading header:", e); 
         }
     }
 
-    // ย้าย syncHeaderProfile เข้ามาเป็น Method ของ Class เพื่อความสะดวก
-    async syncHeaderProfile() {
+    async initProfile() {
         const token = localStorage.getItem("authToken");
         if (!token) return;
 
@@ -66,20 +95,22 @@ class SiteHeader extends HTMLElement {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-
+            
+            // ต้องหา Element ภายใน Shadow/Component นี้เท่านั้น
             const imgEl = this.querySelector('#headerAvatarImg');
             const iconEl = this.querySelector('#headerDefaultIcon');
 
             if (data.profileUrl && imgEl && iconEl) {
-                // 🚀 ใช้ฟังก์ชัน fetch รูปภาพพร้อม Token
                 await fetchAndSetAvatar(imgEl, iconEl, data.profileUrl);
             }
         } catch (e) {
-            console.error("Header profile sync failed");
+            console.error("Profile init failed", e);
         }
     }
 }
 customElements.define('site-header', SiteHeader);
+
+// --- ลบฟังก์ชัน syncHeaderProfile() เก่าที่อยู่นอก Class ทิ้งให้หมด ---
 
 class CommentWidget extends HTMLElement {
     async connectedCallback() {
@@ -126,34 +157,3 @@ class CommentWidget extends HTMLElement {
     }
 }
 customElements.define('comment-widget', CommentWidget);
-
-// เพิ่มส่วนนี้ลงในโค้ดที่จัดการ Header Component
-async function syncHeaderProfile() {
-    const token = localStorage.getItem("authToken");
-    if (!token) return;
-
-    try {
-        // ดึงข้อมูลโปรไฟล์ (ใช้ API เดียวกับหน้า Settings)
-        const response = await fetch(`${CONFIG.API_URL}/user/profile`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-
-        const imgEl = document.getElementById('headerAvatarImg');
-        const iconEl = document.getElementById('headerDefaultIcon');
-
-        if (data.profileUrl) {
-            imgEl.src = data.profileUrl;
-            imgEl.style.display = 'block';
-            iconEl.style.display = 'none';
-        } else {
-            imgEl.style.display = 'none';
-            iconEl.style.display = 'flex';
-        }
-    } catch (e) {
-        console.error("Header sync failed");
-    }
-}
-
-// เรียกใช้งานเมื่อโหลด Component เสร็จ
-syncHeaderProfile();
