@@ -1,9 +1,9 @@
-function goTo(course){
+function goTo(course) {
   event.stopPropagation();
   window.location.href = `course.html?course=${course}`;
 }
 
-function sheet(midterm){
+function sheet(midterm) {
   event.stopPropagation();
   window.location.href = "sheet.html";
 
@@ -13,20 +13,28 @@ function sheet(midterm){
   const lang = langSwitch.checked ? "ise" : "th";
   const mid = midterm ? "midterm" : "final";
 
-  if(langSwitch.checked){
+  if (langSwitch.checked) {
     window.location.href = `sheet.html?lang=${lang}&mid=${mid}`;
-  }else{
+  } else {
     window.location.href = `sheet.html?lang=${lang}&mid=${mid}`;
   }
 
 }
 
-/*const switchEl = document.getElementById("langSwitch");
+const switchEl = document.getElementById("langSwitch");
+const p1 = document.querySelectorAll(".fileP p");
+const p2 = document.querySelectorAll(".fileB p");
+switchEl.addEventListener("change", function () {
+  const lang = this.checked;
+  const fg = document.querySelector(".file-grid")
 
-switchEl.addEventListener("change", function() {
+  const la = lang?' ISE ':' TH '
 
-  const lang = this.checked ? "ise" : "th";
+  p1.forEach(p=>{
+    p.textContent = `File : Midterm [${la}]`
+  })
+  p2.forEach(p=>{
+    p.textContent = `File : Final [${la}]`
+  })
 
-  console.log("current lang =", lang);
-
-});*/
+});
