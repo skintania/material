@@ -4,124 +4,88 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Skintania — Event</title>
-    
-    <style>body{display: none}</style>
-
+    <link rel="stylesheet" href="style.css">
     <script type="module" src="/auth-guard.js"></script>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
-
-        :root {
-            --bg: #0f1724;
-            --card: #0b1220;
-            --accent: #3b82f6;
-            --muted: #9aa4b2
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Sukhumvit Set', 'Kanit', sans-serif, -apple-system, Segoe UI, Roboto, "Noto Sans", Arial;
-            background: linear-gradient(180deg, #071029 0%, var(--bg) 100%);
-            color: #e6eef8
-        }
-
-        .wrap {
-            max-width: 1100px;
-            margin: 48px auto;
-            padding: 24px
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 1.6rem
-        }
-
-        /* สไตล์ปุ่มและการ์ด */
-        .btn {
-            display: block;
-            text-align: center;
-            margin-top: 12px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: #fff;
-            text-decoration: none;
-            font-weight: 600;
-            transition: transform 0.2s;
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
-        }
-
-        p.lead {
-            margin: 6px 0 0;
-            color: var(--muted)
-        }
-
-        .grid {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-            margin-top: 28px
-        }
-
-        .card {
-            width: 100%;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.06));
-            padding: 18px;
-            border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            transition: transform .18s, box-shadow .18s
-        }
-
-        .card h2 {
-            text-align: center;
-            margin: 0 0 6px;
-            font-size: 2rem
-        }
-
-        .card p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 1.5rem
-        }
-
-        footer {
-            margin-top: 40px;
-            color: var(--muted);
-            font-size: 0.9rem
-        }
-    </style>
-
-    <link rel="stylesheet" href="/Event/style.css">
-
     <script type="module" src="/Template/component.js" defer></script>
 </head>
-
 <body>
     <comment-widget></comment-widget>
+    
     <main class="wrap">
-        <site-header page-title="Event" page-desc="Event ต่างๆที่น่าสนใจสำหรับ SkIntania">
-        </site-header>
+        <site-header page-title="Event" page-desc="Event ต่างๆที่น่าสนใจสำหรับ SkIntania"></site-header>
 
-        <section id="coursesGrid" class="grid" aria-label="Courses">
+        <div class="action-bar">
+            <button id="openModalBtn" class="create-btn">
+                <span>+</span> สร้างกิจกรรมใหม่
+            </button>
+        </div>
 
-        </section>
-
-        <script type="module" src="loadEvent.js" defer></script>
+        <section id="coursesGrid" class="grid" aria-label="Courses"></section>
 
         <footer>
             <p>เรื่องแจ้ง น่ารู้</p>
             <ul style="color:var(--muted)">
-                <li>กำลัง Test อยู่</li>
-                <li>ยังไม่มี Database รองรับที</li>
-                <li>อันอื่นรอก่อนนๆ</li>
+                <li>ระบบรองรับการสร้าง Poll และ Activity แล้ว</li>
+                <li>รูปภาพจัดเก็บผ่าน R2 Storage</li>
             </ul>
         </footer>
     </main>
-</body>
 
+    <div id="postModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>สร้างกิจกรรมใหม่</h2>
+                <p>เลือกประเภทและกรอกข้อมูลให้ครบถ้วน</p>
+            </div>
+            
+            <form id="createPostForm">
+                <div class="form-group">
+                    <label>หัวข้อกิจกรรม</label>
+                    <input type="text" name="header" placeholder="เช่น โหวตเลือกเสื้อรุ่น" required>
+                </div>
+
+                <div class="form-group">
+                    <label>ประเภท</label>
+                    <select name="type" id="typeSelect">
+                        <option value="Announcement">📢 ประกาศ (Announcement)</option>
+                        <option value="Activity">🏃 กิจกรรม (Activity)</option>
+                        <option value="Poll">📊 โพล (Poll)</option>
+                    </select>
+                </div>
+
+                <div id="standardArea">
+                    <div class="form-group">
+                        <label>รายละเอียด</label>
+                        <textarea name="description" rows="3" placeholder="เขียนรายละเอียดที่นี่..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>รูปภาพประกอบ (1 รูป)</label>
+                        <input type="file" id="singleImageInput" name="singleImage" accept="image/*">
+                    </div>
+                </div>
+
+                <div id="pollArea" style="display:none;">
+                    <div class="form-group">
+                        <label>จำนวนตัวเลือก</label>
+                        <select id="pollCountSelect">
+                            <option value="2">2 ตัวเลือก</option>
+                            <option value="3">3 ตัวเลือก</option>
+                            <option value="4">4 ตัวเลือก</option>
+                            <option value="5">5 ตัวเลือก</option>
+                        </select>
+                    </div>
+                    <div id="pollChoicesContainer"></div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="closeModalBtn" class="btn-cancel">ยกเลิก</button>
+                    <button type="submit" id="submitBtn" class="btn-submit">โพสต์กิจกรรมเลย</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="loadEvent.js" defer></script>
+    <script type="module" src="post-create.js" defer></script>
+</body>
 </html>
