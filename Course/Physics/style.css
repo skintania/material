@@ -1,9 +1,10 @@
 body {
     font-family: sans-serif;
-    background: #0f0f0f;
+    background: #071029;
     color: white;
     text-align: center;
 }
+
 
 .title {
     margin: 40px;
@@ -18,31 +19,36 @@ body {
 }
 
 .card {
-    background: #1c1c1c;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.06));
+    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    transition: transform .18s, box-shadow .18s;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     padding: 50px;
     border-radius: 20px;
     cursor: pointer;
-    transition: 0.3s;
 }
 
 .card:hover {
     transform: scale(1.05);
-    background: #2a2a2a;
+    box-shadow: 0 20px 40px rgba(2, 6, 23, 0.7);
 }
 
 
 .pink {
-  background: linear-gradient(45deg, #f170ff 0%, #ff53a9 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
+    background: linear-gradient(45deg, #f170ff 0%, #ff53a9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.1));
 }
 
 .blue {
-  background: linear-gradient(45deg, #5ee7df 0%, #3d7bff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
+    background: linear-gradient(45deg, #5ee7df 0%, #3d7bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.1));
 }
 
 .file-grid {
@@ -50,7 +56,7 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 50px;
     padding: 10px;
-    background: linear-gradient(90deg, #525252 0%, #303030 100%);
+    background: linear-gradient(90deg, #3b3b3b 0%, #1800655d 100%);
     border-radius: 25px;
 }
 
@@ -71,6 +77,16 @@ body {
     transition: 0.3s;
     height: 50px;
 }
+
+.file-grid.blink {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 50px;
+    padding: 10px;
+    background: linear-gradient(180deg, #3b3b3b 0%, #1800655d 100%);
+    border-radius: 25px;
+}
+
 /* Switch Button */
 .lang-toggle {
     position: fixed;
