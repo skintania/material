@@ -215,3 +215,44 @@ async function updateAvatarDisplay(imgId, iconId, urlPath) {
         }
     }
 }
+
+document.querySelectorAll('.nav-item[data-section]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        
+        const sectionId = 'section-' + this.getAttribute('data-section');
+        const targetSection = document.getElementById(sectionId);
+
+        if (targetSection) {
+            // ลบ class active จากปุ่มเดิม และเพิ่มให้ปุ่มที่คลิก
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            this.classList.add('active');
+
+            // เลื่อนหน้าจอไปที่ section นั้นๆ แบบนุ่มนวล
+            targetSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// ตรวจสอบว่า Scroll ถึง section ไหนแล้วให้เปลี่ยน Active Menu ตาม (Optional)
+window.addEventListener('scroll', () => {
+    let current = "";
+    const sections = document.querySelectorAll('.content-section');
+    
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (pageYOffset >= sectionTop - 100) {
+            current = section.getAttribute('id').replace('section-', '');
+        }
+    });
+
+    document.querySelectorAll('.nav-item').forEach(nav => {
+        nav.classList.remove('active');
+        if (nav.getAttribute('data-section') === current) {
+            nav.classList.add('active');
+        }
+    });
+});

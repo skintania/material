@@ -36,7 +36,8 @@
                     <div id="sidebarIcon" class="avatar-icon-placeholder">
                         <i class="fa-solid fa-user"></i>
                     </div>
-                    <img id="sidebarAvatar" alt="User" style="display: none;" onerror="handleImageError(this, 'sidebarIcon')">
+                    <img id="sidebarAvatar" alt="User" style="display: none;"
+                        onerror="handleImageError(this, 'sidebarIcon')">
                 </div>
                 <div class="user-text">
                     <span class="name" id="sidebarUsername">กำลังโหลด...</span>
@@ -58,6 +59,12 @@
                 </a>
                 <a href="#" class="nav-item" data-section="notifications">
                     <i class="fa-solid fa-bell"></i> การแจ้งเตือน
+                </a>
+                <a href="#" class="nav-item" data-section="notifications">
+                    <i class="fa-solid fa-bell"></i> การแจ้งเตือน
+                </a>
+                <a href="#" class="nav-item logout-item" data-section="delete-account" style="color: var(--danger);">
+                    <i class="fa-solid fa-user-xmark"></i> ลบบัญชี
                 </a>
                 <hr class="nav-divider">
                 <a href="#" class="nav-item logout-item" id="settingsLogoutBtn">
@@ -83,7 +90,8 @@
                                 <div id="mainIcon" class="avatar-icon-placeholder large">
                                     <i class="fa-solid fa-user"></i>
                                 </div>
-                                <img id="imagePreview" alt="Profile" style="display: none;" onerror="handleImageError(this, 'mainIcon')">
+                                <img id="imagePreview" alt="Profile" style="display: none;"
+                                    onerror="handleImageError(this, 'mainIcon')">
                             </div>
                             <div class="avatar-actions">
                                 <input type="file" id="imageUpload" hidden accept="image/png, image/jpeg, image/webp">
@@ -165,26 +173,75 @@
                     <h2>ความปลอดภัย</h2>
                     <p>เปลี่ยนรหัสผ่านเพื่อความปลอดภัยของบัญชี</p>
                 </div>
-                <div
-                    style="padding: 40px; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: 12px;">
-                    <i class="fa-solid fa-wrench" style="font-size: 2rem; margin-bottom: 15px; opacity: 0.5;"></i>
-                    <p>ระบบเปลี่ยนรหัสผ่านกำลังอยู่ระหว่างการพัฒนา</p>
-                </div>
+
+                <form class="settings-form" id="passwordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">รหัสผ่านปัจจุบัน</label>
+                        <input type="password" id="currentPassword" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="newPassword">รหัสผ่านใหม่</label>
+                            <input type="password" id="newPassword" placeholder="••••••••" required>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="confirmPassword">ยืนยันรหัสผ่านใหม่</label>
+                            <input type="password" id="confirmPassword" placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">อัปเดตรหัสผ่าน</button>
+                    </div>
+                </form>
             </div>
 
             <div id="section-notifications" class="content-section">
                 <div class="section-header">
                     <h2>การแจ้งเตือน</h2>
-                    <p>จัดการการรับข่าวสารจากระบบ</p>
+                    <p>เลือกรับข้อมูลข่าวสารและการอัปเดตผ่านช่องทางต่างๆ</p>
                 </div>
+                <form class="settings-form">
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" style="width: auto;" checked>
+                            รับการแจ้งเตือนผ่านอีเมลเมื่อมีการเข้าสู่ระบบใหม่
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" style="width: auto;" checked> รับข่าวสารประชาสัมพันธ์จาก SkIntania
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-primary">บันทึกการตั้งค่า</button>
+                    </div>
+                </form>
             </div>
 
+            <div id="section-delete-account" class="content-section">
+                <div class="section-header">
+                    <h2 style="color: var(--danger);">ลบบัญชี</h2>
+                    <p>การลบบัญชีจะทำให้ข้อมูลทั้งหมดหายไปถาวร</p>
+                </div>
+                <div class="settings-form">
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        เมื่อคุณลบบัญชี ข้อมูลโปรไฟล์ ประวัติ และสิทธิพิเศษต่างๆ จะไม่สามารถกู้คืนได้
+                    </p>
+                    <div class="form-actions" style="text-align: left; justify-content: flex-start;">
+                        <button type="button" class="btn-primary btn-danger-bg" onclick="confirmDeleteAccount()">
+                            <i class="fa-solid fa-trash-can"></i> ลบบัญชีถาวร
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
     </div>
 
     <script type="module" src="settings.js"></script>
     <script type="module" src="/Template/component.js"></script>
-    
+
 </body>
 
 </html>
