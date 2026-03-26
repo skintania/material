@@ -284,6 +284,38 @@ window.banUser = async function(userId, username) {
     }
 }
 
+window.unbanUser = async function(userId, username) {
+    // 1. ถามเพื่อความชัวร์
+    const confirmUnban = confirm(`✅ คุณแน่ใจหรือไม่ว่าต้องการ "ปลดแบน" ผู้ใช้งาน: ${username} ?\nผู้ใช้จะสามารถกลับมาเข้าสู่ระบบได้ตามปกติ`);
+    
+    if (!confirmUnban) return; 
+
+    try {
+        const token = localStorage.getItem("authToken");
+        
+        // 2. ยิง API ไปที่ Backend เพื่อปลดแบน
+        const response = await fetch(`${CONFIG.API_URL}/admin/users/${userId}/unban`, {
+            method: 'POST', 
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            alert(`✅ ทำการปลดแบนผู้ใช้งาน ${username} เรียบร้อยแล้ว`);
+            // โหลดตารางใหม่เพื่อให้ปุ่มสลับกลับเป็นปุ่มแบนสีแดง
+            loadUsersList(); 
+        } else {
+            alert(`❌ เกิดข้อผิดพลาด: ${data.message || 'ไม่สามารถปลดแบนผู้ใช้ได้'}`);
+        }
+    } catch (error) {
+        console.error("Unban User Error:", error);
+        alert("❌ ไม่สามารถติดต่อเซิร์ฟเวอร์ได้");
+    }
+}
 /* ==========================================
    4. SYSTEM LOGS (บันทึกการทำงาน)
    ========================================== */
