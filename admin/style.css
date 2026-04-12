@@ -1018,6 +1018,107 @@ body {
     border-color: rgba(239, 68, 68, 0.5);
 }
 
+/* คุมให้ปุ่มและตัวเลขหน้าเรียงแถวเดียวกัน */
+/* Container หลักที่คุมแถบนำทางทั้งหมด */
+.r2-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--glass-bg); /* ใช้ตัวแปรโปร่งแสงของคุณ */
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin: 15px 0;
+    gap: 15px;
+    flex-wrap: nowrap; /* บังคับให้อยู่บรรทัดเดียวกัน */
+    overflow-x: auto;  /* ถ้าจอมือถือเล็กให้เลื่อนซ้ายขวาได้ */
+}
+
+/* ฝั่งซ้าย: ปุ่มกลับ + Breadcrumbs */
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-grow: 1; /* ให้กินพื้นที่ตรงกลางที่เหลือ */
+}
+
+/* ปุ่มกลับและปุ่ม Pagination */
+.btn-back, .page-nav-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: 0.2s;
+}
+
+.btn-back:disabled, .page-nav-btn:disabled {
+    filter: grayscale(1);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* เส้นทางโฟลเดอร์ (Breadcrumbs) */
+.r2-breadcrumbs {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+}
+
+.breadcrumb-item {
+    cursor: pointer;
+    color: var(--accent-blue);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.breadcrumb-item:hover {
+    text-decoration: underline;
+}
+
+/* ฝั่งขวา: Pagination */
+.pagination-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.page-num {
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    font-size: 0.9rem;
+    min-width: 30px;
+    text-align: center;
+    transition: 0.2s;
+    color: white;
+}
+
+.page-num.active {
+    background: #ff00cc; /* สีชมพูไฮไลท์ */
+    color: white;
+    font-weight: bold;
+}
+
+.page-num:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.2);
+}
+
 /* =========================================
    USER MANAGEMENT (Modern Table Design)
    ========================================= */

@@ -4,9 +4,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const isAdmin = await checkAdminAccess();
 
-    if (!isAdmin) return; 
+    if (!isAdmin) return;
 
-    document.body.style.display = ''; 
+    document.body.style.display = '';
 
     setupNavigation();
     setupR2Manager();
@@ -130,7 +130,7 @@ async function loadAdminStats() {
         const response = await fetch(`${CONFIG.API_URL}/admin/stats`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (!response.ok) throw new Error("Failed to load stats");
         const data = await response.json();
 
@@ -160,13 +160,13 @@ async function loadUsersList() {
 
         if (data.success) {
             const tbody = document.getElementById('usersTableBody');
-            if (!tbody) return; 
-            
+            if (!tbody) return;
+
             tbody.innerHTML = ''; // เคลียร์ของเก่า
 
             data.users.forEach(user => {
                 const tr = document.createElement('tr');
-                
+
                 // 1. แถวหลัก (ใช้โค้ดและสีที่คุณกำหนดมาเป๊ะๆ 🎨)
                 tr.innerHTML = `
                     <td>${user.id}</td>
@@ -193,17 +193,17 @@ async function loadUsersList() {
                 const detailTr = document.createElement('tr');
                 detailTr.id = `user-detail-${user.id}`;
                 detailTr.className = 'user-detail-row';
-                detailTr.style.display = 'none'; 
+                detailTr.style.display = 'none';
 
-                const defaultAvatar = `https://ui-avatars.com/api/?name=${user.username || 'U'}&background=random&color=fff&size=128`; 
+                const defaultAvatar = `https://ui-avatars.com/api/?name=${user.username || 'U'}&background=random&color=fff&size=128`;
 
                 let profileImg = defaultAvatar;
 
                 // เช็คการโหลดรูป Profile (ถ้าไม่มีให้ใช้ Default)
-                profileImg = '/Assest/default-avatar.png'; 
+                profileImg = '/Assest/default-avatar.png';
                 if (user.profile_url) {
-                    profileImg = user.profile_url.startsWith('http') 
-                        ? user.profile_url 
+                    profileImg = user.profile_url.startsWith('http')
+                        ? user.profile_url
                         : `${CONFIG.API_URL}/${user.profile_url}`;
                 }
 
@@ -221,9 +221,9 @@ async function loadUsersList() {
                             <div class="user-info-group">
                                 <p><strong>รหัสนิสิต:</strong> ${user.student_id || '-'}</p>
                                 <p><strong>สถานะการยืนยัน:</strong> 
-                                    ${user.is_verified 
-                                        ? '<span style="color:#34d399;">ยืนยันอีเมลแล้ว</span>' 
-                                        : '<span style="color:#fbbf24;">รอการยืนยัน</span>'}
+                                    ${user.is_verified
+                        ? '<span style="color:#34d399;">ยืนยันอีเมลแล้ว</span>'
+                        : '<span style="color:#fbbf24;">รอการยืนยัน</span>'}
                                 </p>
                                 <p><strong>วันที่สมัคร:</strong> ${user.created_at ? new Date(user.created_at).toLocaleDateString('th-TH') : '-'}</p>
                             </div>
@@ -253,7 +253,7 @@ async function loadUsersList() {
     }
 }
 
-window.toggleUserDetails = function(userId, btnElement) {
+window.toggleUserDetails = function (userId, btnElement) {
     const detailRow = document.getElementById(`user-detail-${userId}`);
 
     if (detailRow.style.display === 'none') {
@@ -268,24 +268,24 @@ window.toggleUserDetails = function(userId, btnElement) {
 }
 
 // ฟังก์ชันเปิดหน้าต่างแก้ไข/แบนผู้ใช้ (แปะไว้ที่ Window Object เพื่อให้เรียกจาก HTML ได้)
-window.editUser = function(id) {
+window.editUser = function (id) {
     alert(`เตรียมเปิดหน้าแก้ไขข้อมูล User ID: ${id}`);
     // TODO: ใส่ Logic ดึงข้อมูล User นี้มาแสดงใน Modal
 };
 
-window.banUser = async function(userId, username) {
+window.banUser = async function (userId, username) {
     // 1. ถามเพื่อความชัวร์ ป้องกันการมือลั่น
     const confirmBan = confirm(`⚠️ คุณแน่ใจหรือไม่ว่าต้องการแบนผู้ใช้งาน: ${username} ?\nการกระทำนี้อาจทำให้ผู้ใช้ไม่สามารถเข้าสู่ระบบได้อีก`);
-    
+
     if (!confirmBan) return; // ถ้ายกเลิก ก็จบการทำงาน
 
     try {
         const token = localStorage.getItem("authToken");
-        
+
         // 2. ยิง API ไปที่ Backend ของคุณ (ปรับ URL ให้ตรงกับที่คุณออกแบบไว้นะครับ)
         const response = await fetch(`${CONFIG.API_URL}/admin/users/${userId}/ban`, {
             method: 'POST', // หรือ PUT, DELETE ตามที่คุณเขียนไว้ใน Backend
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
@@ -296,7 +296,7 @@ window.banUser = async function(userId, username) {
         if (response.ok && data.success) {
             alert(`✅ ทำการแบนผู้ใช้งาน ${username} เรียบร้อยแล้ว`);
             // โหลดตารางใหม่เพื่ออัปเดตข้อมูลล่าสุด
-            loadUsersList(); 
+            loadUsersList();
         } else {
             alert(`❌ เกิดข้อผิดพลาด: ${data.message || 'ไม่สามารถแบนผู้ใช้ได้'}`);
         }
@@ -306,19 +306,19 @@ window.banUser = async function(userId, username) {
     }
 }
 
-window.unbanUser = async function(userId, username) {
+window.unbanUser = async function (userId, username) {
     // 1. ถามเพื่อความชัวร์
     const confirmUnban = confirm(`✅ คุณแน่ใจหรือไม่ว่าต้องการ "ปลดแบน" ผู้ใช้งาน: ${username} ?\nผู้ใช้จะสามารถกลับมาเข้าสู่ระบบได้ตามปกติ`);
-    
-    if (!confirmUnban) return; 
+
+    if (!confirmUnban) return;
 
     try {
         const token = localStorage.getItem("authToken");
-        
+
         // 2. ยิง API ไปที่ Backend เพื่อปลดแบน
         const response = await fetch(`${CONFIG.API_URL}/admin/users/${userId}/unban`, {
-            method: 'POST', 
-            headers: { 
+            method: 'POST',
+            headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
@@ -329,7 +329,7 @@ window.unbanUser = async function(userId, username) {
         if (response.ok && data.success) {
             alert(`✅ ทำการปลดแบนผู้ใช้งาน ${username} เรียบร้อยแล้ว`);
             // โหลดตารางใหม่เพื่อให้ปุ่มสลับกลับเป็นปุ่มแบนสีแดง
-            loadUsersList(); 
+            loadUsersList();
         } else {
             alert(`❌ เกิดข้อผิดพลาด: ${data.message || 'ไม่สามารถปลดแบนผู้ใช้ได้'}`);
         }
@@ -352,10 +352,10 @@ async function loadSystemLogs() {
         const response = await fetch(`${CONFIG.API_URL}/admin/logs`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (!response.ok) throw new Error("Failed to load logs");
         const data = await response.json();
-        const logs = data.logs || []; 
+        const logs = data.logs || [];
 
         terminal.innerHTML = ''; // ล้างของเก่า
 
@@ -365,7 +365,7 @@ async function loadSystemLogs() {
         }
 
         logs.forEach(log => {
-            const type = log.type || 'info'; 
+            const type = log.type || 'info';
             const div = document.createElement('div');
             div.className = `log-line ${type}`;
             div.innerHTML = `[${log.timestamp || new Date().toISOString()}] <strong>${type.toUpperCase()}:</strong> ${log.message}`;
@@ -467,66 +467,265 @@ async function uploadToR2(file, bucket) {
     }
 }
 
-async function loadR2Files(bucket) {
+
+// ==========================================
+// 🗂️ ตัวแปร State สำหรับจัดการ R2
+// ==========================================
+let currentR2Bucket = '';
+let currentR2Prefix = '';
+let r2CursorHistory = []; // เก็บ Cursor ของหน้าก่อนหน้า
+let r2CurrentPage = 1;
+let r2NextCursor = null;
+let r2CursorMap = { 1: null }; // เก็บ Cursor ของแต่ละหน้า หน้า 1 คือ null
+
+// ==========================================
+// 🚀 ฟังก์ชันหลักสำหรับโหลดไฟล์/โฟลเดอร์
+// ==========================================
+async function loadR2Files(bucket, prefix = '', cursor = null, targetPage = 1) {
     const container = document.querySelector('.file-list-container');
+    const paginationZone = document.getElementById('r2Pagination');
+    
     if (!container) return;
 
+    // 1. จัดการเรื่อง State เมื่อเปลี่ยน Bucket หรือ Folder
+    // ถ้าไม่มี cursor แปลว่าเป็นการกดเข้าโฟลเดอร์ใหม่ หรือเลือก Bucket ใหม่ ให้รีเซ็ตหน้า 1
+    if (!cursor) {
+        r2CursorMap = { 1: null };
+        targetPage = 1;
+    }
+
+    currentR2Bucket = bucket;
+    currentR2Prefix = prefix;
+
     if (!bucket) {
-        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px 20px; background: var(--glass-bg); border-radius: 12px; border: 1px dashed var(--border);"><i class="fa-solid fa-hand-pointer" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.5;"></i><p>กรุณาเลือก Bucket ก่อน</p></div>';
+        container.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 40px 20px; background: var(--glass-bg); border-radius: 12px; border: 1px dashed var(--border);">
+                <i class="fa-solid fa-hand-pointer" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.5;"></i>
+                <p>กรุณาเลือก Bucket ก่อน</p>
+            </div>`;
+        if (paginationZone) paginationZone.style.display = 'none';
         return;
     }
 
-    container.innerHTML = '<div style="text-align:center; color: var(--accent-blue);">กำลังโหลดไฟล์...</div>';
+    container.innerHTML = '<div style="text-align:center; color: var(--accent-blue); padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>';
 
     try {
         const token = localStorage.getItem("authToken");
-        const response = await fetch(`${CONFIG.API_URL}/admin/r2/files?bucket=${encodeURIComponent(bucket)}`, {
+        let fetchUrl = `${CONFIG.API_URL}/admin/r2/files?bucket=${encodeURIComponent(bucket)}&prefix=${encodeURIComponent(prefix)}`;
+        
+        // ส่ง cursor ไปที่ Backend ถ้ามี
+        if (cursor) {
+            fetchUrl += `&cursor=${encodeURIComponent(cursor)}`;
+        }
+
+        const response = await fetch(fetchUrl, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!response.ok) throw new Error("Failed to load files");
+        if (!response.ok) throw new Error("ไม่สามารถโหลดข้อมูลจาก Server ได้");
+        
         const data = await response.json();
-        const files = data.files || [];
+        const items = data.items || [];
+        
+        // อัปเดต Cursor สำหรับหน้าถัดไป
+        r2NextCursor = data.nextCursor;
+        r2CurrentPage = targetPage;
 
-        container.innerHTML = ''; // ล้างของเก่า
-
-        if (files.length === 0) {
-            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px 20px; background: var(--glass-bg); border-radius: 12px; border: 1px dashed var(--border);"><i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.5;"></i><p>ยังไม่มีไฟล์ใน Storage</p></div>';
-            return;
+        if (r2NextCursor) {
+            r2CursorMap[r2CurrentPage + 1] = r2NextCursor;
         }
 
-        files.forEach(file => {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
+        // --- เริ่มการวาด UI ---
+        container.innerHTML = ''; 
 
-            // กำหนดไอคอนตามประเภทไฟล์
-            let iconClass = 'fa-regular fa-file';
-            if (file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-                iconClass = 'fa-regular fa-image';
-            } else if (file.name.match(/\.(pdf)$/i)) {
-                iconClass = 'fa-solid fa-file-pdf';
-            } else if (file.name.match(/\.(mp4|avi|mkv)$/i)) {
-                iconClass = 'fa-solid fa-file-video';
-            }
+        if (items.length === 0) {
+            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;">ว่างเปล่า</div>';
+        } else {
+            items.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'file-item';
 
-            fileItem.innerHTML = `
-                <div class="file-info">
-                    <i class="${iconClass}" style="color: var(--accent-blue);"></i>
-                    <div class="file-details">
-                        <span class="file-name">${file.name}</span>
-                        <span class="file-size">${file.size || 'Unknown size'}</span>
-                    </div>
-                </div>
-                <button class="btn-action delete-btn" onclick="deleteR2File('${bucket}', '${file.name}')">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-            `;
+                if (item.type === 'directory') {
+                    // โครงสร้าง Folder
+                    itemDiv.innerHTML = `
+                        <div class="file-info folder-clickable" style="cursor: pointer;">
+                            <i class="fa-solid fa-folder" style="color: #fbbf24;"></i>
+                            <div class="file-details">
+                                <span class="file-name">${item.name}</span>
+                                <span class="file-size">โฟลเดอร์</span>
+                            </div>
+                        </div>`;
+                    
+                    itemDiv.querySelector('.folder-clickable').onclick = () => {
+                        loadR2Files(bucket, item.path);
+                    };
+                } else {
+                    // โครงสร้าง File
+                    let iconClass = 'fa-regular fa-file';
+                    if (item.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) iconClass = 'fa-regular fa-image';
+                    else if (item.name.match(/\.(pdf)$/i)) iconClass = 'fa-solid fa-file-pdf';
+                    else if (item.name.match(/\.(mp4|avi|mkv)$/i)) iconClass = 'fa-solid fa-file-video';
 
-            container.appendChild(fileItem);
-        });
+                    itemDiv.innerHTML = `
+                        <div class="file-info">
+                            <i class="${iconClass}" style="color: var(--accent-blue);"></i>
+                            <div class="file-details">
+                                <span class="file-name">${item.name}</span>
+                                <span class="file-size">${item.size}</span>
+                            </div>
+                        </div>
+                        <button class="btn-action delete-btn">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>`;
+
+                    itemDiv.querySelector('.delete-btn').onclick = () => {
+                        if (confirm(`คุณต้องการลบไฟล์ ${item.name} ใช่หรือไม่?`)) {
+                            deleteR2File(bucket, item.fullPath);
+                        }
+                    };
+                }
+                container.appendChild(itemDiv);
+            });
+        }
+
+        // อัปเดตส่วนประกอบรอบๆ
+        renderPagination();
+        updateR2Breadcrumbs();
 
     } catch (error) {
-        container.innerHTML = `<div style="color: #ef4444; text-align: center;">❌ เกิดข้อผิดพลาด: ${error.message}</div>`;
+        container.innerHTML = `<div style="color: #ef4444; text-align: center; padding: 20px;">❌ Error: ${error.message}</div>`;
+    }
+}
+
+// ฟังก์ชันสร้างเลขหน้าแบบ Prev 1 2 3 Next
+function renderPagination() {
+    const pageNumbersContainer = document.getElementById('r2PageNumbers');
+    const prevBtn = document.getElementById('r2PrevPage');
+    const nextBtn = document.getElementById('r2NextPage');
+    
+    if (!pageNumbersContainer) return;
+    pageNumbersContainer.innerHTML = '';
+
+    // สร้างตัวเลขหน้าทั้งหมดที่มีใน Cursor Map
+    // r2CursorMap เก็บ { 1: null, 2: 'abc', 3: 'def' }
+    Object.keys(r2CursorMap).sort((a, b) => a - b).forEach(pageNum => {
+        const p = parseInt(pageNum);
+        const span = document.createElement('span');
+        span.className = `page-num ${p === r2CurrentPage ? 'active' : ''}`;
+        span.innerText = p;
+        
+        // ทำให้กดเลขหน้าได้ทันที
+        span.onclick = () => {
+            if (p !== r2CurrentPage) {
+                loadR2Files(currentR2Bucket, currentR2Prefix, r2CursorMap[p], p);
+            }
+        };
+        pageNumbersContainer.appendChild(span);
+    });
+
+    // ปุ่ม Prev
+    prevBtn.onclick = () => {
+        const target = r2CurrentPage - 1;
+        loadR2Files(currentR2Bucket, currentR2Prefix, r2CursorMap[target], target);
+    };
+
+    // ปุ่ม Next
+    nextBtn.onclick = () => {
+        loadR2Files(currentR2Bucket, currentR2Prefix, r2NextCursor, r2CurrentPage + 1);
+    };
+
+    // เปิด/ปิดการทำงานของปุ่ม
+    prevBtn.disabled = (r2CurrentPage <= 1);
+    nextBtn.disabled = !r2NextCursor;
+}
+
+// ฟังก์ชันอัปเดต Breadcrumbs
+function updateR2Breadcrumbs() {
+    const breadcrumbs = document.getElementById('r2Breadcrumbs');
+    const backBtn = document.getElementById('r2BackBtn');
+    if (!breadcrumbs) return;
+
+    // 1. สร้างปุ่ม Root
+    let html = `<span class="breadcrumb-item" data-path="">Root</span>`;
+    
+    // 2. ถ้ามี Prefix (อยู่ในโฟลเดอร์ย่อย)
+    if (currentR2Prefix) {
+        const parts = currentR2Prefix.split('/').filter(Boolean);
+        let accumulatedPath = '';
+        
+        parts.forEach((part) => {
+            accumulatedPath += part + '/';
+            html += ` <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem; opacity: 0.5;"></i> `;
+            html += `<span class="breadcrumb-item" data-path="${accumulatedPath}">${part}</span>`;
+        });
+
+        // เปิดใช้งานปุ่มกลับ (ย้อนไป 1 ระดับ)
+        if (backBtn) {
+            backBtn.disabled = false;
+            backBtn.onclick = () => {
+                const parentPath = parts.slice(0, -1).join('/');
+                loadR2Files(currentR2Bucket, parentPath ? parentPath + '/' : '');
+            };
+        }
+    } else {
+        if (backBtn) backBtn.disabled = true;
+    }
+
+    breadcrumbs.innerHTML = html;
+
+    // 3. ผูก Event ให้ Breadcrumbs ทุกตัวคลิกได้
+    breadcrumbs.querySelectorAll('.breadcrumb-item').forEach(item => {
+        item.onclick = () => {
+            loadR2Files(currentR2Bucket, item.getAttribute('data-path'));
+        };
+    });
+}
+
+// ==========================================
+// 📄 ฟังก์ชันอัปเดตปุ่มแบ่งหน้า (Pagination)
+// ==========================================
+function updateR2Pagination() {
+    const paginationZone = document.getElementById('r2Pagination');
+    const prevBtn = document.getElementById('r2PrevPage');
+    const nextBtn = document.getElementById('r2NextPage');
+    const pageInfo = document.getElementById('r2PageInfo');
+
+    if (!paginationZone) return;
+
+    // ถ้าไม่มีข้อมูลหน้าถัดไป และไม่ได้อยู่หน้าแรก (ไม่มีประวัติ) ให้ซ่อน
+    if (!r2NextCursor && r2CursorHistory.length === 0) {
+        paginationZone.style.display = 'none';
+        return;
+    }
+
+    paginationZone.style.display = 'flex';
+    pageInfo.innerText = `หน้า ${r2CurrentPage}`;
+
+    // ปุ่มหน้าก่อนหน้า (Prev)
+    if (r2CursorHistory.length > 0) {
+        prevBtn.disabled = false;
+        prevBtn.onclick = () => {
+            r2CurrentPage--;
+            r2CursorHistory.pop(); // ลบ Cursor ปัจจุบันออก
+            const prevCursor = r2CursorHistory.length > 0 ? r2CursorHistory[r2CursorHistory.length - 1] : null;
+            loadR2Files(currentR2Bucket, currentR2Prefix, prevCursor, true);
+        };
+    } else {
+        prevBtn.disabled = true;
+        prevBtn.onclick = null;
+    }
+
+    // ปุ่มหน้าถัดไป (Next)
+    if (r2NextCursor) {
+        nextBtn.disabled = false;
+        nextBtn.onclick = () => {
+            r2CurrentPage++;
+            r2CursorHistory.push(r2NextCursor); // เก็บ Cursor ของหน้าที่จะไปเข้าประวัติ
+            loadR2Files(currentR2Bucket, currentR2Prefix, r2NextCursor);
+        };
+    } else {
+        nextBtn.disabled = true;
+        nextBtn.onclick = null;
     }
 }
 
@@ -629,7 +828,7 @@ function setupD1Manager() {
             });
 
             const data = await response.json();
-            
+
             if (!response.ok) throw new Error(data.error || "Query Execution Failed");
 
             // วาดตารางผลลัพธ์
@@ -699,7 +898,7 @@ async function loadD1Tables() {
 }
 
 // เปิดฟังก์ชัน selectTable ให้เรียกจาก HTML ได้
-window.selectTable = function(tableName) {
+window.selectTable = function (tableName) {
     const queryInput = document.getElementById('sqlQueryInput');
     if (queryInput) {
         queryInput.value = `SELECT * FROM ${tableName} LIMIT 10;`;
@@ -718,7 +917,7 @@ function renderSQLResults(results, container) {
 
     const headers = Object.keys(results[0]);
     let tableHTML = `<div style="overflow-x: auto;"><table class="d1-result-table"><thead><tr>`;
-    
+
     headers.forEach(h => { tableHTML += `<th>${h}</th>`; });
     tableHTML += `</tr></thead><tbody>`;
 

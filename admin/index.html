@@ -97,18 +97,6 @@
         </div>
       </section>
 
-      <section id="section-logs" class="content-section">
-        <h2><i class="fa-solid fa-terminal"></i> System Logs</h2>
-        <p>บันทึกการทำงานของเซิร์ฟเวอร์แบบ Real-time</p>
-
-        <div class="log-terminal" id="logTerminal">
-          <div class="log-line info">[System] Initializing log viewer...</div>
-        </div>
-        <button class="btn-primary" id="refreshLogsBtn" style="margin-top: 15px;">
-          <i class="fa-solid fa-rotate-right"></i> รีเฟรช Logs
-        </button>
-      </section>
-
       <section id="section-r2" class="content-section">
         <h2><i class="fa-solid fa-cloud"></i> จัดการ R2 Storage</h2>
         <p>อัปโหลด ลบ และจัดการไฟล์ใน Cloudflare R2 แบบ Manual</p>
@@ -120,17 +108,43 @@
               <option value="">กำลังโหลด buckets...</option>
             </select>
           </div>
+          <div class="storage-actions">
+            <button class="btn-primary" id="r2UploadBtn">
+              <i class="fa-solid fa-file-arrow-up"></i> อัปโหลดไฟล์
+            </button>
+            <button class="btn-secondary" id="r2DeleteSelectedBtn" style="display: none;">
+              <i class="fa-solid fa-trash"></i> ลบที่เลือก (<span id="selectedCount">0</span>)
+            </button>
+          </div>
         </div>
 
-        <div class="upload-zone" id="r2UploadZone">
+        <div class="upload-zone" id="r2UploadZone" style="display: none;">
           <i class="fa-solid fa-file-arrow-up"></i>
           <p>ลากไฟล์มาวางที่นี่ หรือ <span class="text-pink">คลิกเพื่อเลือกไฟล์</span></p>
           <input type="file" id="r2FileInput" hidden multiple>
         </div>
 
-        <div class="file-list-container">
-          <!-- ไฟล์จะถูกโหลดและแสดงที่นี่โดย JavaScript -->
+        <div class="r2-nav-bar">
+          <div class="nav-left">
+            <button class="btn-back" id="r2BackBtn" disabled>
+              <i class="fa-solid fa-arrow-left"></i> กลับ
+            </button>
+            <div class="r2-breadcrumbs" id="r2Breadcrumbs">
+              <span class="breadcrumb-item">Root</span>
+            </div>
+          </div>
+
+          <div class="pagination-wrap" id="r2Pagination">
+            <button class="page-nav-btn" id="r2PrevPage" disabled>Prev</button>
+            <div id="r2PageNumbers" class="page-numbers">
+            </div>
+            <button class="page-nav-btn" id="r2NextPage" disabled>Next</button>
+          </div>
         </div>
+
+        <div class="file-list-container">
+        </div>
+
       </section>
 
       <section id="section-d1" class="content-section">
@@ -141,7 +155,6 @@
           <div class="tables-overview">
             <h3>ตารางในฐานข้อมูล</h3>
             <div id="tablesList" class="tables-grid">
-              <!-- ตารางจะถูกโหลดและแสดงที่นี่ -->
             </div>
           </div>
         </div>
@@ -161,27 +174,19 @@
         </div>
       </section>
 
+      <section id="section-logs" class="content-section">
+        <h2><i class="fa-solid fa-terminal"></i> System Logs</h2>
+        <p>บันทึกการทำงานของเซิร์ฟเวอร์แบบ Real-time</p>
+
+        <div class="log-terminal" id="logTerminal">
+          <div class="log-line info">[System] Initializing log viewer...</div>
+        </div>
+        <button class="btn-primary" id="refreshLogsBtn" style="margin-top: 15px;">
+          <i class="fa-solid fa-rotate-right"></i> รีเฟรช Logs
+        </button>
+      </section>
+
     </main>
-  </div>
-
-  <div id="section-system-logs" class="content-section">
-    <div class="section-header">
-      <h2>System Logs</h2>
-      <p>ตรวจสอบกิจกรรมที่เกิดขึ้นในระบบ</p>
-    </div>
-    <div class="log-container">
-      <div class="log-header">
-        <span>Live Console</span>
-        <button class="btn-small" id="clearLogs">Clear</button>
-      </div>
-      <div class="log-content" id="logDisplay">
-        <div class="log-line info">[10:05:02] System initialized...</div>
-        <div class="log-line success">[10:05:10] Connection to D1 Database: OK</div>
-      </div>
-    </div>
-  </div>
-
-  </section>
   </div>
 
   <script type="module" src="admin.js"></script>
