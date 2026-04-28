@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const finalUrl = `${CONFIG.API_URL}/asset?file=Calculator/data.json`;
+    const finalUrl = `${CONFIG.API_URL}/assets/Calculator/data.json`;
 
     // 1. ดึง Token มาเตรียมไว้ (เช็คชื่อ Key ให้ตรงกับที่คุณเซฟไว้ เช่น "authToken")
     const token = localStorage.getItem("authToken");
