@@ -57,7 +57,7 @@
   - [PATCH /courses/:courseId](#patch-coursescourseid)
   - [DELETE /courses/:courseId](#delete-coursescourseid)
   - [GET /courses/:courseId/clips](#get-coursescourseIdclipscursor)
-  - [GET /courses/:courseId/clips/:clipId](#get-coursescourseidclipsclipidd)
+  - [GET /courses/:courseId/clips/*](#get-coursescourseidclips)
   - [PUT /courses/:courseId/clips/:clipId](#put-coursescourseidclipsclipidd)
   - [DELETE /courses/:courseId/clips/:clipId](#delete-coursescourseidclipsclipidd)
   - [GET /courses/:courseId/files](#get-coursescourseidfilescursor)
@@ -785,10 +785,20 @@ List clips for a course. Supports R2 pagination via `cursor`.
 
 ---
 
-### GET /courses/:courseId/clips/:clipId
-Stream a video clip.
+### GET /courses/:courseId/clips/*
+Stream a video clip using the `key` from the clip list response.
 
-**Response** — raw video stream with correct `Content-Type`.
+**Auth** — Bearer token in `Authorization` header, or `?token=` query parameter (required for `<video>` tag).
+
+**Example** — `GET /courses/1/clips/material%2FLecture%2010%20Mechanical%20Properties%20II.mp4?token=eyJ...`
+
+**Response** — raw video stream with correct `Content-Type`. Supports HTTP Range requests (`206 Partial Content`) for seeking and buffering without downloading the full file.
+
+> Use the `key` field from `GET /courses/:courseId/clips` URL-encoded as the path suffix.
+>
+> ```html
+> <video src="https://.../courses/1/clips/material%2FLecture%202.mp4?token=eyJ..." controls></video>
+> ```
 
 ---
 

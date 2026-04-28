@@ -7,11 +7,11 @@
   <title>Intania-Material</title>
 
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="cmt.css">
 
-  <script src="cmt.js" defer></script>
+  <link rel="stylesheet" href="/Template/style.css">
   <script type="module" src="/auth-guard.js"></script>
-  <link rel="icon" href="../Assest/sk-cu.png" type="image/jpg">
+  <script type="module" src="/Template/component.js" defer></script>
+  <link rel="icon" href="/Assest/sk-cu.png">
 
   <style>
     /* 1. CSS จัดหน้าตา Image Popup */
@@ -108,26 +108,57 @@
 
 <body>
 
-  <div id="commentBtn">💬</div>
-
-  <div id="commentPopup" class="hidden">
-    <div class="popupBox">
-      <h3>ส่งคำถาม / แจ้งปัญหา</h3>
-      <textarea id="commentText" placeholder="พิมพ์ข้อความที่นี่..."></textarea>
-      <div class="popupActions">
-        <button onclick="sendComment()">ส่ง</button>
-        <button onclick="togglePopup()">ปิด</button>
-      </div>
-    </div>
-  </div>
+  <comment-widget></comment-widget>
 
   <div class="sticky-popup">
-    <img src="../..//Assest/sk-cu.png" alt="เว็บนี้จัดทำโดยกุหลาบราชัน">
+    <img src="/Assest/sk-cu.png" alt="เว็บนี้จัดทำโดยกุหลาบราชัน">
   </div>
 
   <div class="container">
-    <div class="player">
-      <video id="videoPlayer" controls></video>
+    <div class="player" id="playerWrap">
+      <video id="videoPlayer"></video>
+
+      <div class="video-controls" id="videoControls">
+        <input type="range" id="seekBar" min="0" max="100" value="0" step="0.1">
+        <div class="controls-row">
+          <div class="controls-left">
+
+            <button class="ctrl-btn" id="playBtn" title="Play / Pause">
+              <svg id="playIcon" viewBox="0 0 24 24" width="20" height="20" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+              <svg id="pauseIcon" viewBox="0 0 24 24" width="20" height="20" fill="white" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            </button>
+
+            <div class="volume-wrap">
+              <button class="ctrl-btn" id="muteBtn" title="Mute">
+                <svg id="volOnIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                <svg id="volOffIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" style="display:none"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              </button>
+              <input type="range" id="volumeBar" min="0" max="1" step="0.05" value="1">
+            </div>
+
+            <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+          </div>
+
+          <div class="controls-right">
+            <div class="speed-wrap">
+              <button class="ctrl-btn speed-toggle-btn" id="speedToggle" title="Playback speed">1×</button>
+              <div class="speed-menu" id="speedMenu">
+                <button class="speed-opt" data-speed="0.5">0.5×</button>
+                <button class="speed-opt" data-speed="0.75">0.75×</button>
+                <button class="speed-opt active" data-speed="1">1×</button>
+                <button class="speed-opt" data-speed="1.25">1.25×</button>
+                <button class="speed-opt" data-speed="1.5">1.5×</button>
+                <button class="speed-opt" data-speed="2">2×</button>
+              </div>
+            </div>
+
+            <button class="ctrl-btn" id="fullscreenBtn" title="Fullscreen">
+              <svg id="fsEnterIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              <svg id="fsExitIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" style="display:none"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="catalog" id="catalog"></div>
   </div>

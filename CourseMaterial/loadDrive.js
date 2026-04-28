@@ -21,29 +21,36 @@ const State = {
  */
 const DriveAPI = {
     async fetchItems(path) {
-        // ดึง Token จาก localStorage (ชื่อ Key ต้องตรงกับตอน Login)
         const token = localStorage.getItem("authToken");
-
         const url = new URL(`${CONFIG.API_URL}/skdrive`);
-        if (path) url.searchParams.append('path', path);
+
+        // API uses 'prefix'; folders need a trailing slash
+        if (path) {
+            url.searchParams.append('prefix', path.endsWith('/') ? path : path + '/');
+        }
 
         const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`, // 🔑 ส่งกุญแจยืนยันตัวตน
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (response.status === 401) {
-            console.error("🚫 Token ไม่ถูกต้องหรือหมดอายุ");
             window.location.replace("/login/");
             return [];
         }
-
         if (!response.ok) throw new Error(`API error: ${response.status}`);
 
-        return await response.json();
+        const data = await response.json();
+
+        // Merge folders + files into a unified array matching the shape the UI expects
+        const folders = (data.folders ?? []).map(f => ({
+            name: f.name, key: f.key, type: 'folder'
+        }));
+        const files = (data.files ?? []).map(f => ({
+            name: f.name, key: f.key, size: f.size, type: 'file',
+            link: `${CONFIG.API_URL}/skdrive/${f.key}`
+        }));
+
+        return [...folders, ...files];
     },
 
     async getDeepFiles(apiPath, zipPrefix) {
@@ -55,7 +62,8 @@ const DriveAPI = {
             if (item.type === 'file') {
                 files.push({ link: item.link, zipPath: itemPath });
             } else {
-                const subFiles = await this.getDeepFiles(`${apiPath}/${item.name}`, itemPath);
+                const subPath = apiPath ? `${apiPath}/${item.name}` : item.name;
+                const subFiles = await this.getDeepFiles(subPath, itemPath);
                 files.push(...subFiles);
             }
         }
