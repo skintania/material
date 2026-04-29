@@ -7,21 +7,30 @@ const token = () => localStorage.getItem("authToken") || '';
 let currentCourseId = null;
 
 // ── Custom controls ──────────────────────────────────────────────
-const playBtn      = document.getElementById('playBtn');
-const playIcon     = document.getElementById('playIcon');
-const pauseIcon    = document.getElementById('pauseIcon');
-const muteBtn      = document.getElementById('muteBtn');
-const volOnIcon    = document.getElementById('volOnIcon');
-const volOffIcon   = document.getElementById('volOffIcon');
-const seekBar      = document.getElementById('seekBar');
-const volumeBar    = document.getElementById('volumeBar');
-const timeDisplay  = document.getElementById('timeDisplay');
-const speedToggle  = document.getElementById('speedToggle');
-const speedMenu    = document.getElementById('speedMenu');
+const playBtn       = document.getElementById('playBtn');
+const playIcon      = document.getElementById('playIcon');
+const pauseIcon     = document.getElementById('pauseIcon');
+const muteBtn       = document.getElementById('muteBtn');
+const volOnIcon     = document.getElementById('volOnIcon');
+const volOffIcon    = document.getElementById('volOffIcon');
+const seekBar       = document.getElementById('seekBar');
+const seekWrap      = document.getElementById('seekWrap');
+const volumeBar     = document.getElementById('volumeBar');
+const timeDisplay   = document.getElementById('timeDisplay');
+const speedToggle   = document.getElementById('speedToggle');
+const speedMenu     = document.getElementById('speedMenu');
+const videoControls = document.getElementById('videoControls');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
-const fsEnterIcon  = document.getElementById('fsEnterIcon');
-const fsExitIcon   = document.getElementById('fsExitIcon');
-const playerWrap   = document.getElementById('playerWrap');
+const fsEnterIcon   = document.getElementById('fsEnterIcon');
+const fsExitIcon    = document.getElementById('fsExitIcon');
+const playerWrap    = document.getElementById('playerWrap');
+const skipBackBtn   = document.getElementById('skipBackBtn');
+const skipFwdBtn    = document.getElementById('skipFwdBtn');
+const previewVideo  = document.getElementById('previewVideo');
+const seekPreview   = document.getElementById('seekPreview');
+const previewTimeEl = document.getElementById('previewTime');
+const dblLeft       = document.getElementById('dblLeft');
+const dblRight      = document.getElementById('dblRight');
 
 function fmt(s) {
     if (!s || isNaN(s)) return '0:00';
@@ -109,6 +118,96 @@ document.addEventListener('webkitfullscreenchange', onFsChange);
 syncPlay();
 syncVol();
 
+// ── Skip ±10s ────────────────────────────────────────────────
+skipBackBtn.addEventListener('click', () => {
+    player.currentTime = Math.max(0, player.currentTime - 10);
+});
+skipFwdBtn.addEventListener('click', () => {
+    player.currentTime = Math.min(player.duration || 0, player.currentTime + 10);
+});
+
+// ── Seek bar preview ─────────────────────────────────────────
+const PREVIEW_W = 160;
+let previewSeeking = false;
+
+function showSeekPreview() {
+    if (player.src && isFinite(player.duration)) seekPreview.style.display = 'flex';
+}
+function hideSeekPreview() {
+    seekPreview.style.display = 'none';
+    previewSeeking = false;
+}
+function updatePreview(clientX, time) {
+    if (!isFinite(player.duration) || !previewVideo.src) return;
+    const wrapRect = seekWrap.getBoundingClientRect();
+    const raw  = clientX - wrapRect.left - PREVIEW_W / 2;
+    const left = Math.max(0, Math.min(wrapRect.width - PREVIEW_W, raw));
+    seekPreview.style.left = `${left}px`;
+    previewTimeEl.textContent = fmt(time);
+    if (!previewSeeking) {
+        previewSeeking = true;
+        previewVideo.currentTime = time;
+    }
+}
+
+// Desktop
+seekBar.addEventListener('mouseenter', showSeekPreview);
+seekBar.addEventListener('mouseleave', hideSeekPreview);
+seekBar.addEventListener('mousemove', e => {
+    const rect = seekBar.getBoundingClientRect();
+    const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    updatePreview(e.clientX, pct * player.duration);
+});
+
+// Mobile
+seekBar.addEventListener('touchstart', showSeekPreview, { passive: true });
+seekBar.addEventListener('touchend', () => setTimeout(hideSeekPreview, 400), { passive: true });
+seekBar.addEventListener('touchmove', e => {
+    const touch = e.touches[0];
+    const rect  = seekBar.getBoundingClientRect();
+    const pct   = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+    updatePreview(touch.clientX, pct * player.duration);
+}, { passive: true });
+
+previewVideo.addEventListener('seeked', () => { previewSeeking = false; });
+
+// ── Mobile double-tap ────────────────────────────────────────
+function showTapIndicator(side) {
+    const el = side === 'left' ? dblLeft : dblRight;
+    el.classList.remove('active');
+    void el.offsetWidth; // restart animation
+    el.classList.add('active');
+}
+
+let lastTapTime  = 0;
+let tapTimeoutId = null;
+
+playerWrap.addEventListener('touchend', e => {
+    if (e.target.closest('.video-controls, .catalog')) return;
+    e.preventDefault();
+
+    const now = Date.now();
+    const gap = now - lastTapTime;
+
+    if (gap < 300 && gap > 0) {
+        clearTimeout(tapTimeoutId);
+        lastTapTime = 0;
+        const { left, width } = playerWrap.getBoundingClientRect();
+        if (e.changedTouches[0].clientX < left + width / 2) {
+            player.currentTime = Math.max(0, player.currentTime - 10);
+            showTapIndicator('left');
+        } else {
+            player.currentTime = Math.min(player.duration || 0, player.currentTime + 10);
+            showTapIndicator('right');
+        }
+    } else {
+        lastTapTime = now;
+        tapTimeoutId = setTimeout(() => {
+            player.paused ? player.play() : player.pause();
+        }, 300);
+    }
+}, { passive: false });
+
 async function findCourseId() {
     const res = await fetch(`${CONFIG.API_URL}/courses`, {
         headers: { 'Authorization': `Bearer ${token()}` }
@@ -134,6 +233,9 @@ function playClip(courseId, key, el, { autoplay = true } = {}) {
     el.classList.add("active");
 
     player.src = `${CONFIG.API_URL}/courses/${courseId}/clips/${encodeURIComponent(key)}?token=${encodeURIComponent(token())}`;
+    previewVideo.src = player.src;
+    previewVideo.load();
+    seekPreview.style.display = 'none';
     if (!autoplay) return;
 
     player.play().catch(() => {
