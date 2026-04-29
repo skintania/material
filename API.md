@@ -445,7 +445,7 @@ Create an activity.
 ---
 
 ### PATCH /events/:id
-Edit an event header, description, or cover image link. Creator or admin only.
+Edit an event header, description, or cover image link. **Creator only.**
 
 **Body** (all optional)
 ```json
@@ -511,12 +511,28 @@ Remove the image from a poll choice. Creator or admin only.
 ---
 
 ### POST /events/:id/vote
-Vote in a poll (or change an existing vote).
+Vote, change, or remove a vote in a poll.
 
 **Body**
 ```json
 { "choiceId": 3 }
 ```
+Pass `"choiceId": null` to remove an existing vote.
+
+**Response 200**
+```json
+{
+  "success": true,
+  "message": "Vote recorded",
+  "userVote": 3,
+  "choices": [
+    { "id": 1, "choiceText": "Option A", "voteCount": 5, "imgLink": null },
+    { "id": 3, "choiceText": "Option B", "voteCount": 12, "imgLink": null }
+  ]
+}
+```
+
+> `message` is `"Vote changed"` when switching choices, `"Vote removed"` when `choiceId` is `null`. `userVote` is `null` after removal.
 
 ---
 
@@ -525,7 +541,7 @@ Toggle join/leave for an activity.
 
 **Response 200**
 ```json
-{ "success": true, "message": "Joined activity", "isJoined": true }
+{ "success": true, "message": "Joined activity", "isJoined": true, "participantCount": 42 }
 ```
 
 ---

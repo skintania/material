@@ -26,7 +26,15 @@ async function fetchEventDetail(id) {
         const res = await apiFetch(`/events/${id}`);
         if (!res.ok) return null;
         const result = await res.json();
-        return result.event ?? null;
+        const ev = result.event ?? null;
+        if (!ev) return null;
+        // Merge top-level fields that the API may return outside the event object
+        const { userVote, choices, isJoined, participantCount } = result;
+        if (userVote !== undefined) ev.userVote = userVote;
+        if (choices !== undefined) ev.choices = choices;
+        if (isJoined !== undefined) ev.isJoined = isJoined;
+        if (participantCount !== undefined) ev.participantCount = participantCount;
+        return ev;
     } catch {
         return null;
     }
@@ -45,16 +53,27 @@ async function loadImageWithAuth(imgLink) {
 }
 
 window.editingEventId = null;
+let currentUser = null;
 
-function createOptionsMenu(id) {
+async function fetchCurrentUser() {
+    try {
+        const res = await apiFetch('/auth/me');
+        if (!res.ok) return null;
+        const { user } = await res.json();
+        return user ?? null;
+    } catch {
+        return null;
+    }
+}
+
+function createOptionsMenu(id, { canEdit, canDelete }) {
     const wrapper = document.createElement('div');
     wrapper.className = 'post-options-menu';
+    const editBtn  = canEdit  ? `<button class="edit-post-btn"   data-id="${id}">✏️ แก้ไข</button>` : '';
+    const deleteBtn = canDelete ? `<button class="delete-post-btn" data-id="${id}" style="color:#ef4444">🗑️ ลบ</button>` : '';
     wrapper.innerHTML = `
         <button class="menu-dot-btn">⋮</button>
-        <div class="menu-dropdown-content">
-            <button class="edit-post-btn" data-id="${id}">✏️ แก้ไข</button>
-            <button class="delete-post-btn" data-id="${id}" style="color:#ef4444">🗑️ ลบ</button>
-        </div>
+        <div class="menu-dropdown-content">${editBtn}${deleteBtn}</div>
     `;
     const dot = wrapper.querySelector('.menu-dot-btn');
     const drop = wrapper.querySelector('.menu-dropdown-content');
@@ -68,11 +87,19 @@ function createOptionsMenu(id) {
 
 async function renderPoll(ev) {
     const choices = Array.isArray(ev.choices) ? ev.choices : [];
-    const totalVotes = choices.reduce((s, c) => s + (c.voteCount ?? 0), 0);
-    let votedId = ev.userVote ?? null;
+    // userVote can be a plain ID or an object {choiceId, ...}
+    const rawVote = ev.userVote;
+    let votedId = null;
+    if (rawVote != null) {
+        const vid = typeof rawVote === 'object' ? rawVote.choiceId : rawVote;
+        votedId = vid != null ? String(vid) : null;
+    }
 
     const container = document.createElement('div');
     container.style.cssText = 'margin-top:15px;display:flex;flex-direction:column;gap:15px;';
+
+    // Build DOM refs so we can update counts later
+    const refs = [];
 
     for (const choice of choices) {
         const row = document.createElement('div');
@@ -85,41 +112,108 @@ async function renderPoll(ev) {
             row.appendChild(img);
         }
 
-        const pct = totalVotes > 0 ? (choice.voteCount ?? 0) / totalVotes * 100 : 0;
         const content = document.createElement('div');
         content.style.flexGrow = '1';
-        content.innerHTML = `
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                <strong>${choice.choiceText}</strong>
-                <span class="vote-text" style="color:#60a5fa">${choice.voteCount ?? 0} โหวต (${pct.toFixed(0)}%)</span>
-            </div>
-            <div style="height:20px;background:rgba(255,255,255,.1);border-radius:10px;overflow:hidden;">
-                <div class="progress-bar" style="width:${pct}%;height:100%;background:linear-gradient(90deg,#3b82f6,#60a5fa);transition:width .3s ease;"></div>
-            </div>
-        `;
+
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;justify-content:space-between;margin-bottom:4px;';
+        const label = document.createElement('strong');
+        label.textContent = choice.choiceText;
+        const voteText = document.createElement('span');
+        voteText.style.color = '#60a5fa';
+        header.appendChild(label);
+        header.appendChild(voteText);
+
+        const barOuter = document.createElement('div');
+        barOuter.style.cssText = 'height:20px;background:rgba(255,255,255,.1);border-radius:10px;overflow:hidden;';
+        const bar = document.createElement('div');
+        bar.style.cssText = 'height:100%;background:linear-gradient(90deg,#3b82f6,#60a5fa);transition:width .3s ease;';
+        barOuter.appendChild(bar);
+
+        content.appendChild(header);
+        content.appendChild(barOuter);
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.style.cssText = 'width:20px;height:20px;cursor:pointer;flex-shrink:0;';
-        checkbox.checked = choice.id === votedId;
 
-        checkbox.addEventListener('change', async e => {
-            if (!e.target.checked) { e.target.checked = true; return; } // no unvote
-            container.querySelectorAll('input[type=checkbox]').forEach(cb => { if (cb !== e.target) cb.checked = false; });
-            votedId = choice.id;
-            try {
-                await apiFetch(`/events/${ev.id}/vote`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ choiceId: choice.id }),
-                });
-            } catch { /* silent */ }
-        });
+        refs.push({ choice: { ...choice, voteCount: choice.voteCount ?? 0 }, voteText, bar, checkbox });
 
         row.appendChild(content);
         row.appendChild(checkbox);
         container.appendChild(row);
     }
+
+    function updateUI() {
+        const total = refs.reduce((s, r) => s + r.choice.voteCount, 0);
+        for (const r of refs) {
+            const pct = total > 0 ? r.choice.voteCount / total * 100 : 0;
+            r.voteText.textContent = `${r.choice.voteCount} โหวต (${pct.toFixed(0)}%)`;
+            r.bar.style.width = `${pct}%`;
+            // eslint-disable-next-line eqeqeq
+            r.checkbox.checked = votedId != null && r.choice.id == votedId;
+        }
+    }
+
+    updateUI();
+
+    for (const ref of refs) {
+        ref.checkbox.addEventListener('change', async e => {
+            const checking = e.target.checked;
+            const prevRef = refs.find(r => String(r.choice.id) === votedId);
+
+            if (!checking) {
+                // Unvote: optimistic update
+                if (prevRef) prevRef.choice.voteCount = Math.max(0, prevRef.choice.voteCount - 1);
+                votedId = null;
+                updateUI();
+                try {
+                    const res = await apiFetch(`/events/${ev.id}/vote`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ choiceId: null }),
+                    });
+                    if (res.ok) {
+                        const result = await res.json();
+                        if (Array.isArray(result.choices)) {
+                            result.choices.forEach(c => {
+                                const r = refs.find(r => String(r.choice.id) === String(c.id));
+                                if (r) r.choice.voteCount = c.voteCount ?? r.choice.voteCount;
+                            });
+                            updateUI();
+                        }
+                    }
+                } catch { /* silent */ }
+                return;
+            }
+
+            // Vote: uncheck others, optimistic update
+            refs.forEach(r => { if (r.checkbox !== e.target) r.checkbox.checked = false; });
+            if (prevRef) prevRef.choice.voteCount = Math.max(0, prevRef.choice.voteCount - 1);
+            ref.choice.voteCount += 1;
+            votedId = String(ref.choice.id);
+            updateUI();
+
+            try {
+                const res = await apiFetch(`/events/${ev.id}/vote`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ choiceId: ref.choice.id }),
+                });
+                if (res.ok) {
+                    const result = await res.json();
+                    if (Array.isArray(result.choices)) {
+                        result.choices.forEach(c => {
+                            const r = refs.find(r => String(r.choice.id) === String(c.id));
+                            if (r) r.choice.voteCount = c.voteCount ?? r.choice.voteCount;
+                        });
+                        updateUI();
+                    }
+                }
+            } catch { /* silent */ }
+        });
+    }
+
     return container;
 }
 
@@ -171,6 +265,10 @@ async function renderActivity(ev) {
                 chk.checked = joined;
                 lbl.style.color = joined ? '#10b981' : '#94a3b8';
             }
+            if (result.participantCount !== undefined) {
+                count = result.participantCount;
+                partText.innerText = `👥 ผู้เข้าร่วม: ${count} คน`;
+            }
         } catch { /* silent */ }
     });
 
@@ -204,12 +302,17 @@ async function renderEvents(events, grid) {
         return;
     }
 
+    const isAdmin = currentUser?.role === 'admin';
+
     for (const ev of events) {
         const card = document.createElement('article');
         card.className = 'card';
         card.style.position = 'relative';
 
-        if (ev.canManage) card.appendChild(createOptionsMenu(ev.id));
+        const isCreator = currentUser?.id === ev.creatorId;
+        const canEdit   = isCreator;
+        const canDelete = isCreator || isAdmin;
+        if (canEdit || canDelete) card.appendChild(createOptionsMenu(ev.id, { canEdit, canDelete }));
 
         const title = document.createElement('h2');
         title.innerText = ev.header || `กิจกรรม ${ev.id}`;
@@ -231,9 +334,8 @@ async function renderEvents(events, grid) {
 document.addEventListener('DOMContentLoaded', async () => {
     const grid = document.getElementById('coursesGrid');
     if (grid) {
-        const events = await fetchEvents();
-        window.eventList = events;
-        await renderEvents(events, grid);
+        [currentUser, window.eventList] = await Promise.all([fetchCurrentUser(), fetchEvents()]);
+        await renderEvents(window.eventList, grid);
     }
 
     const modal = document.getElementById('postModal');

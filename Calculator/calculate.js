@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         Promise.all([
-            fetch(`${CONFIG.API_URL}/asset?file=Calculator/weight.json`, {
+            fetch(`${CONFIG.API_URL}/assets/Calculator/weight.json`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return res.json();
                 }),
 
-            fetch(`${CONFIG.API_URL}/asset?file=Calculator/data.json`, {
+            fetch(`${CONFIG.API_URL}/assets/Calculator/data.json`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
