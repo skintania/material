@@ -283,7 +283,7 @@ Search users by name or username. Returns public profile only (no email, no ban 
 ### PATCH /users/:id
 Update user profile fields.
 
-**Auth required** — self only. Admins cannot edit another user's personal info.
+**Auth required** — self only.
 
 **Body** (all fields optional)
 ```json
@@ -291,12 +291,19 @@ Update user profile fields.
   "firstname": "Beam",
   "lastname": "S",
   "email": "new@example.com",
+  "otp": "123456",
   "student_id": "6400000001",
+  "osk_gen": 30,
+  "osk_id": "12345",
   "profile_url": null
 }
 ```
 
-> Note: `username`, `role`, `password` cannot be changed through this endpoint.
+> `username`, `role`, and `password` cannot be changed through this endpoint.
+>
+> Changing `email` to a **different address** requires `otp` — call `POST /auth/resend-otp` with the current email first. After the update succeeds, the account is marked unverified and an OTP is automatically sent to the new email for re-verification.
+>
+> If `email` is the same as the existing one, `otp` is not required and the field is ignored.
 
 ---
 

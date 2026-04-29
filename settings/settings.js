@@ -166,11 +166,14 @@ async function updateUserData() {
         const userId = localStorage.getItem('userId');
         if (!userId) throw new Error('ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่');
 
+        const oskGenVal = document.getElementById('oskGen').value.trim();
         const patchBody = {
             firstname: document.getElementById('firstName').value.trim(),
             lastname: document.getElementById('lastName').value.trim(),
             email: document.getElementById('email').value.trim(),
             student_id: document.getElementById('cuId').value.trim(),
+            osk_id: document.getElementById('oskNum').value.trim(),
+            ...(oskGenVal !== '' && { osk_gen: Number(oskGenVal) }),
         };
         const patchRes = await fetch(`${CONFIG.API_URL}/users/${userId}`, {
             method: 'PATCH',
@@ -207,10 +210,12 @@ function setInputValue(id, value) {
 }
 
 function toggleEditMode(isEditing) {
-    ['firstName', 'lastName', 'email', 'cuId'].forEach(id => {
+    ['firstName', 'lastName', 'email', 'cuId', 'oskGen', 'oskNum'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.disabled = !isEditing;
     });
+    const usernameEl = document.getElementById('username');
+    if (usernameEl) usernameEl.disabled = true;
 
     const avatarActions = document.querySelector('.avatar-actions');
     if (avatarActions) avatarActions.style.display = isEditing ? 'flex' : 'none';
