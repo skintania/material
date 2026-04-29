@@ -44,8 +44,13 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Soft shadow */
 }
 
+.card.dropdown-active {
+    position: relative;
+    z-index: 100;
+}
+
 .options-list {
-    display: none; 
+    display: none;
     position: absolute;
     z-index: 10;
     background-color: white;

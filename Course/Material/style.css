@@ -69,9 +69,18 @@ video {
   gap: 4px;
 }
 
-.player:hover .video-controls {
+.player:hover .video-controls,
+.player.touch-active .video-controls {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* Always show controls on touch devices (no hover available) */
+@media (hover: none) {
+  .video-controls {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 /* Seek bar */
@@ -262,8 +271,8 @@ video {
   color: var(--primary-color);
 }
 
-/* --- Responsive (Mobile) --- */
-@media (max-width: 768px) {
+/* --- Responsive (Mobile phones only, not tablets) --- */
+@media (max-width: 480px) {
   .container {
     flex-direction: column;
     height: 100vh;

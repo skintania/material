@@ -7,14 +7,18 @@ allDropdowns.forEach(dropdown => {
 
     let hideTimer;
 
+    const parentCard = dropdown.closest('.card');
+
     const showOptions = () => {
         clearTimeout(hideTimer);
         optionsList.style.display = 'block';
+        if (parentCard) parentCard.classList.add('dropdown-active');
         document.addEventListener('click', closeOnOutsideClick);
     };
 
     const hideOptions = () => {
         optionsList.style.display = 'none';
+        if (parentCard) parentCard.classList.remove('dropdown-active');
         document.removeEventListener('click', closeOnOutsideClick);
     };
 

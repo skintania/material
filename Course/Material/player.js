@@ -89,15 +89,22 @@ speedMenu.querySelectorAll('.speed-opt').forEach(opt => {
     });
 });
 
-// Fullscreen
+// Fullscreen (with Safari webkit fallbacks)
+const enterFullscreen = el => el.requestFullscreen?.() ?? el.webkitRequestFullscreen?.();
+const exitFullscreen  = () => document.exitFullscreen?.() ?? document.webkitExitFullscreen?.();
+const getFullscreenEl = () => document.fullscreenElement ?? document.webkitFullscreenElement;
+
 fullscreenBtn.addEventListener('click', () => {
-    document.fullscreenElement ? document.exitFullscreen() : playerWrap.requestFullscreen();
+    getFullscreenEl() ? exitFullscreen() : enterFullscreen(playerWrap);
 });
-document.addEventListener('fullscreenchange', () => {
-    const fs = !!document.fullscreenElement;
+
+function onFsChange() {
+    const fs = !!getFullscreenEl();
     fsEnterIcon.style.display = fs ? 'none' : '';
     fsExitIcon.style.display  = fs ? '' : 'none';
-});
+}
+document.addEventListener('fullscreenchange', onFsChange);
+document.addEventListener('webkitfullscreenchange', onFsChange);
 
 syncPlay();
 syncVol();
