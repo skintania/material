@@ -114,7 +114,7 @@ class SiteHeader extends HTMLElement {
 
                 // 🌟 6. ระบบแทรกเมนู Admin
                 // สมมติว่าใน API /user/profile มีการส่ง property user.role กลับมาด้วย
-                if (user.role === 'admin') {
+                if (user.role === 'admin' || user.role === 'OSK') {
                     const menuCard = this.querySelector('.dropdown-menu-card');
                     
                     if (menuCard) {

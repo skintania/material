@@ -335,6 +335,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const grid = document.getElementById('coursesGrid');
     if (grid) {
         [currentUser, window.eventList] = await Promise.all([fetchCurrentUser(), fetchEvents()]);
+        const canCreate = currentUser?.role === 'OSK' || currentUser?.role === 'admin';
+        const openModalBtn = document.getElementById('openModalBtn');
+        if (openModalBtn) openModalBtn.style.display = canCreate ? '' : 'none';
         await renderEvents(window.eventList, grid);
     }
 

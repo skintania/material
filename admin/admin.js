@@ -174,8 +174,8 @@ async function loadUsersList() {
                     <td>${user.email}</td>
                     <td>${user.osk_gen || '-'}</td>
                     <td>
-                        <span class="role-badge ${user.role === 'admin' ? 'admin' : 'user'}">
-                            ${user.role === 'admin' ? '👑 Admin' : '👤 User'}
+                        <span class="role-badge ${user.role === 'admin' ? 'admin' : user.role === 'OSK' ? 'osk' : 'user'}">
+                            ${user.role === 'admin' ? '👑 Admin' : user.role === 'OSK' ? '⭐ OSK' : '👤 Member'}
                         </span>
                         
                         ${user.is_banned === 1 ? `

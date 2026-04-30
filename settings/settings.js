@@ -1,5 +1,11 @@
 import { CONFIG } from '/config.js';
 
+let userRole = '';
+
+function isOSK() {
+    return userRole === 'OSK' || userRole === 'admin';
+}
+
 function showToast(message, type = 'success') {
     const existing = document.getElementById('settings-toast');
     if (existing) existing.remove();
@@ -125,6 +131,7 @@ async function loadUserData() {
         const user = resData.user;
         if (!user) return;
         localStorage.setItem('userId', user.id ?? '');
+        userRole = user.role || '';
 
         setInputValue('firstName', user.firstname);
         setInputValue('lastName', user.lastname);
@@ -133,6 +140,9 @@ async function loadUserData() {
         setInputValue('oskGen', user.osk_gen);
         setInputValue('oskNum', user.osk_id);
         setInputValue('cuId', user.student_id);
+
+        const oskRow = document.getElementById('oskRow');
+        if (oskRow) oskRow.style.display = isOSK() ? '' : 'none';
 
         if (user.profile_url) {
             updateAvatarDisplay('sidebarAvatar', 'sidebarIcon', user.id);
@@ -166,15 +176,17 @@ async function updateUserData() {
         const userId = localStorage.getItem('userId');
         if (!userId) throw new Error('ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่');
 
-        const oskGenVal = document.getElementById('oskGen').value.trim();
         const patchBody = {
             firstname: document.getElementById('firstName').value.trim(),
             lastname: document.getElementById('lastName').value.trim(),
             email: document.getElementById('email').value.trim(),
             student_id: document.getElementById('cuId').value.trim(),
-            osk_id: document.getElementById('oskNum').value.trim(),
-            ...(oskGenVal !== '' && { osk_gen: Number(oskGenVal) }),
         };
+        if (isOSK()) {
+            const oskGenVal = document.getElementById('oskGen').value.trim();
+            patchBody.osk_id = document.getElementById('oskNum').value.trim();
+            if (oskGenVal !== '') patchBody.osk_gen = Number(oskGenVal);
+        }
         const patchRes = await fetch(`${CONFIG.API_URL}/users/${userId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -210,7 +222,9 @@ function setInputValue(id, value) {
 }
 
 function toggleEditMode(isEditing) {
-    ['firstName', 'lastName', 'email', 'cuId', 'oskGen', 'oskNum'].forEach(id => {
+    const fields = ['firstName', 'lastName', 'email', 'cuId'];
+    if (isOSK()) fields.push('oskGen', 'oskNum');
+    fields.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.disabled = !isEditing;
     });
