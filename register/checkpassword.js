@@ -54,7 +54,7 @@ async function submitRegistration(endpoint, formData, submitBtn) {
     const result = await response.json();
 
     if (response.ok && result.success) {
-      window.location.replace(`verify-email.html?email=${encodeURIComponent(formData.email)}`);
+      window.location.replace(`verify-email.html?identifier=${encodeURIComponent(formData.email)}`);
     } else {
       alert("เกิดข้อผิดพลาด: " + (result.error || "ไม่สามารถลงทะเบียนได้"));
       submitBtn.innerText = originalText;

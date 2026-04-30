@@ -14,7 +14,7 @@
   <main class="auth-wrap">
     <div class="card">
       <h1>ยืนยันอีเมล</h1>
-      <p class="lead">เราได้ส่งรหัส OTP 6 หลักไปที่<br><strong id="targetEmail" style="color:#e6eef8;">---</strong></p>
+      <p class="lead" id="leadText">กำลังส่งรหัส OTP ไปที่อีเมลของคุณ...</p>
 
       <form id="otpForm">
         <div class="form-group">
@@ -22,7 +22,6 @@
             style="text-align:center; letter-spacing:12px; font-size:1.4rem; font-weight:500;"
             placeholder="------" maxlength="6" inputmode="numeric" autocomplete="one-time-code" required>
         </div>
-
         <button type="submit" class="btn" id="submitBtn">ยืนยันรหัส OTP</button>
       </form>
 
@@ -38,41 +37,100 @@
     import { CONFIG } from '/config.js';
 
     document.addEventListener("DOMContentLoaded", () => {
-      const email = new URLSearchParams(window.location.search).get('email');
+      const params  = new URLSearchParams(window.location.search);
+      const identifier = params.get('identifier') || params.get('email') || '';
+      const fromLogin  = params.get('from') === 'login';
 
-      if (!email) {
+      if (!identifier) {
         window.location.replace("/login/");
         return;
       }
 
-      document.getElementById("targetEmail").innerText = email;
-
-      const form = document.getElementById("otpForm");
-      const otpInput = document.getElementById("otp");
+      const form      = document.getElementById("otpForm");
+      const otpInput  = document.getElementById("otp");
       const submitBtn = document.getElementById("submitBtn");
       const resendBtn = document.getElementById("resendBtn");
       const statusMsg = document.getElementById("statusMsg");
+      const leadText  = document.getElementById("leadText");
+
+      // --- Helpers ---
+
+      function showStatus(success, html) {
+        statusMsg.style.display = "block";
+        statusMsg.style.background = success ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)";
+        statusMsg.style.border     = success ? "1px solid rgba(34,197,94,0.3)" : "1px solid rgba(239,68,68,0.3)";
+        statusMsg.style.color      = success ? "#4ade80" : "#f87171";
+        statusMsg.innerHTML = html;
+      }
+
+      // Build the correct field for resend-otp based on what the user typed.
+      // API accepts: { email } | { username } | { student_id }
+      function resendBody(value) {
+        if (value.includes('@'))   return { email: value };
+        if (/^\d+$/.test(value))  return { student_id: value };
+        return { username: value };
+      }
+
+      function startCooldown() {
+        let counter = 60;
+        resendBtn.innerText = `ส่งรหัสใหม่ได้อีกครั้งใน (${counter}s)`;
+        resendBtn.dataset.cooldown = "1";
+        const timer = setInterval(() => {
+          counter--;
+          resendBtn.innerText = `ส่งรหัสใหม่ได้อีกครั้งใน (${counter}s)`;
+          if (counter <= 0) {
+            clearInterval(timer);
+            delete resendBtn.dataset.cooldown;
+            resendBtn.innerText = "ไม่ได้รับอีเมล? ส่งรหัสใหม่อีกครั้ง";
+          }
+        }, 1000);
+      }
+
+      // --- resend-otp ---
+
+      async function sendOtp(isInitial = false) {
+        if (!isInitial && resendBtn.dataset.cooldown) return;
+
+        resendBtn.dataset.cooldown = "1";
+        resendBtn.innerText = "กำลังส่งรหัส OTP...";
+
+        try {
+          const response = await fetch(`${CONFIG.API_URL}/auth/resend-otp`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(resendBody(identifier))
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            const display = result.email || identifier;
+            leadText.innerHTML = `รหัส OTP ถูกส่งไปที่<br><strong style="color:#e6eef8;">${display}</strong>`;
+            if (!isInitial) showStatus(true, "✓ ส่งรหัส OTP ใหม่ไปที่อีเมลของคุณแล้ว");
+            startCooldown();
+          } else {
+            leadText.innerHTML = "กรอกรหัส OTP ที่ได้รับทางอีเมล";
+            showStatus(false, "✗ " + (result.error || "ไม่สามารถส่งรหัสได้"));
+            delete resendBtn.dataset.cooldown;
+            resendBtn.innerText = "ไม่ได้รับอีเมล? ส่งรหัสใหม่อีกครั้ง";
+          }
+        } catch {
+          leadText.innerHTML = "กรอกรหัส OTP ที่ได้รับทางอีเมล";
+          showStatus(false, "✗ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่");
+          delete resendBtn.dataset.cooldown;
+          resendBtn.innerText = "ไม่ได้รับอีเมล? ส่งรหัสใหม่อีกครั้ง";
+        }
+      }
+
+      // --- verify-otp ---
 
       otpInput.addEventListener('input', function () {
         this.value = this.value.replace(/[^0-9]/g, '');
       });
 
-      function showStatus(success, html) {
-        statusMsg.style.display = "block";
-        if (success) {
-          statusMsg.style.background = "rgba(34,197,94,0.12)";
-          statusMsg.style.border = "1px solid rgba(34,197,94,0.3)";
-          statusMsg.style.color = "#4ade80";
-        } else {
-          statusMsg.style.background = "rgba(239,68,68,0.12)";
-          statusMsg.style.border = "1px solid rgba(239,68,68,0.3)";
-          statusMsg.style.color = "#f87171";
-        }
-        statusMsg.innerHTML = html;
-      }
-
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
+
         const otpCode = otpInput.value.trim();
         if (otpCode.length !== 6) {
           showStatus(false, "✗ กรุณากรอกรหัส OTP ให้ครบ 6 หลัก");
@@ -86,7 +144,7 @@
           const response = await fetch(`${CONFIG.API_URL}/auth/verify-otp`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, otp: otpCode })
+            body: JSON.stringify({ ...resendBody(identifier), otp: otpCode })
           });
 
           const result = await response.json();
@@ -94,60 +152,45 @@
           if (response.ok && result.success) {
             form.style.display = "none";
             resendBtn.style.display = "none";
-            showStatus(true, "✓ ยืนยันอีเมลสำเร็จ!<br><span style='font-size:0.85rem;color:#9aa4b2;'>กำลังพาไปหน้าเข้าสู่ระบบใน 3 วินาที...</span>");
-            setTimeout(() => window.location.replace("/login/"), 3000);
+
+            if (result.token) {
+              localStorage.setItem("authToken", result.token);
+              localStorage.setItem("userId",   result.user?.id ?? "");
+              localStorage.setItem("username", result.user?.username ?? "");
+              localStorage.setItem("role",     result.user?.role ?? "");
+              showStatus(true, "✓ ยืนยันอีเมลสำเร็จ!<br><span style='font-size:0.85rem;color:#9aa4b2;'>กำลังพาไปหน้าหลักใน 3 วินาที...</span>");
+              setTimeout(() => window.location.replace("/"), 3000);
+            } else if (fromLogin) {
+              showStatus(true, "✓ ยืนยันอีเมลสำเร็จ!<br><span style='font-size:0.85rem;color:#9aa4b2;'>กรุณาเข้าสู่ระบบอีกครั้ง...</span>");
+              setTimeout(() => window.location.replace("/login/"), 3000);
+            } else {
+              showStatus(true, "✓ ยืนยันอีเมลสำเร็จ!<br><span style='font-size:0.85rem;color:#9aa4b2;'>กำลังพาไปหน้าเข้าสู่ระบบใน 3 วินาที...</span>");
+              setTimeout(() => window.location.replace("/login/"), 3000);
+            }
           } else {
-            showStatus(false, "✗ " + (result.error || "รหัส OTP ไม่ถูกต้อง"));
+            const errorMsg = result.error || "";
+            if (errorMsg.toLowerCase().includes('expir')) {
+              otpInput.value = '';
+              showStatus(false, "✗ รหัส OTP หมดอายุแล้ว กรุณากดส่งรหัสใหม่");
+            } else {
+              showStatus(false, "✗ " + (errorMsg || "รหัส OTP ไม่ถูกต้อง"));
+            }
             submitBtn.innerText = "ยืนยันรหัส OTP";
             submitBtn.disabled = false;
           }
-        } catch (err) {
+        } catch {
           showStatus(false, "✗ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่");
           submitBtn.innerText = "ยืนยันรหัส OTP";
           submitBtn.disabled = false;
         }
       });
 
-      resendBtn.addEventListener("click", async (e) => {
+      resendBtn.addEventListener("click", (e) => {
         e.preventDefault();
-        if (resendBtn.dataset.cooldown) return;
-
-        resendBtn.innerText = "กำลังส่งรหัสใหม่...";
-        resendBtn.dataset.cooldown = "1";
-
-        try {
-          const response = await fetch(`${CONFIG.API_URL}/auth/resend-otp`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email })
-          });
-
-          const result = await response.json();
-
-          if (result.success) {
-            showStatus(true, "✓ ส่งรหัส OTP ใหม่ไปที่อีเมลของคุณแล้ว");
-            let counter = 60;
-            resendBtn.innerText = `ส่งรหัสใหม่ได้อีกครั้งใน (${counter}s)`;
-            const timer = setInterval(() => {
-              counter--;
-              resendBtn.innerText = `ส่งรหัสใหม่ได้อีกครั้งใน (${counter}s)`;
-              if (counter <= 0) {
-                clearInterval(timer);
-                delete resendBtn.dataset.cooldown;
-                resendBtn.innerText = "ไม่ได้รับอีเมล? ส่งรหัสใหม่อีกครั้ง";
-              }
-            }, 1000);
-          } else {
-            showStatus(false, "✗ " + (result.error || "ไม่สามารถส่งรหัสใหม่ได้"));
-            delete resendBtn.dataset.cooldown;
-            resendBtn.innerText = "ไม่ได้รับอีเมล? ส่งรหัสใหม่อีกครั้ง";
-          }
-        } catch (err) {
-          showStatus(false, "✗ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่");
-          delete resendBtn.dataset.cooldown;
-          resendBtn.innerText = "ไม่ได้รับอีเมล? ส่งรหัสใหม่อีกครั้ง";
-        }
+        sendOtp(false);
       });
+
+      sendOtp(true);
     });
   </script>
 

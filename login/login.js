@@ -37,9 +37,13 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.replace("/");
       } else {
         // 🚨 กรณีพิเศษ: ถ้ายังไม่ได้ยืนยัน OTP (Error 403 ที่เราเขียนไว้ใน Worker)
-        if (response.status === 403) {
-          const emailForVerify = result.email || emailOrUser;
-          window.location.href = `/register/verify-email.html?email=${encodeURIComponent(emailForVerify)}`;
+        const needsVerify = response.status === 403 ||
+          (result.error && result.error.toLowerCase().includes('verif'));
+
+        if (needsVerify) {
+          const params = new URLSearchParams({ identifier: emailOrUser, from: 'login' });
+          if (result.email) params.set('email', result.email);
+          window.location.href = `/register/verify-email.html?${params}`;
         } else {
           alert("ผิดพลาด: " + (result.error || "อีเมลหรือรหัสผ่านไม่ถูกต้อง"));
         }

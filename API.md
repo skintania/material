@@ -110,22 +110,24 @@ Login with username, email, or CU number and password.
 ---
 
 ### POST /auth/verify-otp
-Verify the OTP sent to the user's email after registration.
+Verify the OTP sent to the user's email after registration. Send **one** of `email`, `username`, or `student_id` along with `otp`.
 
 **Body**
 ```json
 { "email": "user@example.com", "otp": "123456" }
 ```
+> Also accepted: `{ "username": "beams", "otp": "123456" }` or `{ "student_id": "6400000000", "otp": "123456" }`
 
 ---
 
 ### POST /auth/resend-otp
-Resend OTP to the given email.
+Resend OTP. Send **one** of `email`, `username`, or `student_id`.
 
 **Body**
 ```json
 { "email": "user@example.com" }
 ```
+> Also accepted: `{ "username": "beams" }` or `{ "student_id": "6400000000" }`
 
 > Subject to `OTP_RESEND_COOLDOWN_SECONDS` (default 60s). Returns 400 with remaining wait time if called too soon.
 
@@ -177,7 +179,7 @@ Get the current authenticated user's profile.
 ## Users
 
 ### POST /users/register/member
-Register a new member account (public, no auth). Returns 400 if `REGISTRATION_OPEN` is false or `MAX_REGISTRATIONS` is reached.
+Register a new member account (public, no auth). Returns 400 if `REGISTRATION_OPEN` is false, `MAX_REGISTRATIONS` is reached, or the email/username/student ID is already taken.
 
 **Body**
 ```json
@@ -194,7 +196,7 @@ Register a new member account (public, no auth). Returns 400 if `REGISTRATION_OP
 ---
 
 ### POST /users/register/osk
-Register a new OSK account (public, no auth). Returns 400 if `REGISTRATION_OPEN` is false or `MAX_REGISTRATIONS` is reached.
+Register a new OSK account (public, no auth). Returns 400 if `REGISTRATION_OPEN` is false, `MAX_REGISTRATIONS` is reached, or the email/username/student ID is already taken.
 
 **Body**
 ```json
@@ -1067,4 +1069,3 @@ Defaults: **100 requests per 60 seconds** per IP. Tunable via `PATCH /admin/conf
 | 429 | Rate limit exceeded |
 | 500 | Internal server error |
 | 503 | Server under maintenance |
-
