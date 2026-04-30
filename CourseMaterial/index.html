@@ -64,6 +64,25 @@
         <section id="coursesGrid" class="grid" aria-label="Courses">
         </section>
 
+        <!-- File Preview Modal -->
+        <div id="filePreviewModal" class="preview-modal" style="display:none" role="dialog" aria-modal="true">
+            <div id="previewModalBackdrop" class="preview-modal-backdrop"></div>
+            <div class="preview-modal-container">
+                <div class="preview-modal-header">
+                    <span id="previewFileName"></span>
+                    <div class="preview-modal-actions">
+                        <button id="previewDownloadBtn">
+                            <i class="fa-solid fa-download"></i> Download
+                        </button>
+                        <button id="previewCloseBtn" aria-label="Close">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="previewModalBody" class="preview-modal-body"></div>
+            </div>
+        </div>
+
         <footer>
             <p>เรื่องแจ้ง น่ารู้</p>
             <ul>

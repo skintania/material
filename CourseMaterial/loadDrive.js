@@ -12,7 +12,7 @@ const State = {
     viewMode: 'grid', // 'grid' หรือ 'list'
     isSelectMode: false,
     selectedFiles: new Set(),
-    pdfJS: window['pdfjs-dist/build/pdf']
+    pdfJS: null
 };
 
 /**
@@ -47,7 +47,7 @@ const DriveAPI = {
         }));
         const files = (data.files ?? []).map(f => ({
             name: f.name, key: f.key, size: f.size, type: 'file',
-            link: `${CONFIG.API_URL}/skdrive/${f.key}`
+            link: `${CONFIG.API_URL}/skdrive/${f.key.split('/').map(encodeURIComponent).join('/')}`
         }));
 
         return [...folders, ...files];
@@ -268,8 +268,11 @@ const Actions = {
 
             UI.downloadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Downloading ${files.length} files...`;
 
+            const token = localStorage.getItem("authToken");
             await Promise.all(files.map(async f => {
-                const res = await fetch(f.link);
+                const res = await fetch(f.link, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 const blob = await res.blob();
                 zip.file(f.zipPath, blob);
             }));
@@ -287,84 +290,105 @@ const Actions = {
         }
     },
     async previewFile(fileUrl, fileName) {
+        const modal = document.getElementById('filePreviewModal');
+        const body = document.getElementById('previewModalBody');
+        const nameEl = document.getElementById('previewFileName');
+        const downloadBtn = document.getElementById('previewDownloadBtn');
+
+        modal.style.display = 'flex';
+        nameEl.textContent = fileName;
+        body.innerHTML = '<div class="preview-loading"><i class="fa-solid fa-spinner fa-spin"></i><span>Loading...</span></div>';
+
         try {
             const token = localStorage.getItem("authToken");
-
-            // 1. ดึงข้อมูลไฟล์แบบแนบ Token
             const response = await fetch(fileUrl, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (response.status === 401) {
-                alert("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
                 window.location.replace("/login/");
                 return;
             }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-            if (!response.ok) throw new Error("ไม่สามารถเปิดไฟล์ได้");
-
-            // 2. แปลงเป็น Blob
             const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
 
-            // 3. สร้าง URL ชั่วคราว (Blob URL)
-            const blobUrl = window.URL.createObjectURL(blob);
+            downloadBtn.onclick = () => {
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = fileName;
+                a.click();
+            };
 
-            // 4. เปิด Preview ในแท็บใหม่
-            // เบราว์เซอร์จะเปิด PDF หรือรูปภาพให้เหมือนเดิม เพราะมันเห็นเป็นไฟล์ดิบแล้ว
-            const newTab = window.open(blobUrl, '_blank');
+            body.innerHTML = '';
+            const ext = fileName.split('.').pop().toLowerCase();
 
-            if (!newTab) {
-                alert("โปรดอนุญาตให้เปิด Pop-up เพื่อดูไฟล์");
+            if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) {
+                const img = document.createElement('img');
+                img.src = blobUrl;
+                img.className = 'preview-image';
+                body.appendChild(img);
+            } else if (ext === 'pdf') {
+                const iframe = document.createElement('iframe');
+                iframe.src = blobUrl;
+                iframe.className = 'preview-iframe';
+                body.appendChild(iframe);
+            } else {
+                body.innerHTML = `<div class="preview-unsupported">
+                    <i class="fa-solid fa-file" style="font-size:3rem;margin-bottom:12px;display:block;"></i>
+                    <div style="margin-top:8px;">${fileName}</div>
+                    <div style="margin-top:8px;font-size:0.85rem;opacity:0.6;">Preview not available — use Download.</div>
+                </div>`;
+                downloadBtn.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = fileName;
+                    a.click();
+                };
             }
-
-            // หมายเหตุ: ไม่ต้องสั่ง revokeObjectURL ทันที 
-            // เพราะถ้าสั่งปิด URL ทันที แท็บที่เปิดใหม่อาจจะโหลดไฟล์ไม่ขึ้น
         } catch (err) {
             console.error("Preview Error:", err);
-            alert("เกิดข้อผิดพลาด: " + err.message);
+            body.innerHTML = `<div class="preview-unsupported">
+                <i class="fa-solid fa-circle-exclamation" style="color:#e74c3c;font-size:2rem;margin-bottom:8px;display:block;"></i>
+                Could not load file: ${err.message}
+            </div>`;
         }
+    },
+
+    closePreview() {
+        const modal = document.getElementById('filePreviewModal');
+        modal.style.display = 'none';
+        document.getElementById('previewModalBody').innerHTML = '';
     },
     async loadLazyPreviews() {
         const containers = document.querySelectorAll('.img-preview-container:not(.loaded)');
         if (containers.length === 0) return;
-
-        console.log(`🖼️ Loading ${containers.length} image previews...`);
 
         const token = localStorage.getItem("authToken");
 
         await Promise.all([...containers].map(async (container) => {
             const fileUrl = container.dataset.fileUrl;
             if (!fileUrl || !token) return;
-
             try {
-                // 🔄 2. Fetch ข้อมูลรูปภาพพร้อมแนบ Token
                 const response = await fetch(fileUrl, {
-                    method: 'GET',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                if (!response.ok) throw new Error("เข้าถึงไฟล์ไม่ได้");
+                if (!response.ok) return;
 
                 const blob = await response.blob();
-                const blobUrl = window.URL.createObjectURL(blob);
+                const blobUrl = URL.createObjectURL(blob);
 
-                // 🔄 3. แทนที่ Icon ด้วยแท็ก <img> พร้อม Blob URL ใหม่
                 const img = document.createElement('img');
                 img.src = blobUrl;
                 img.className = 'file-preview-img loaded-preview';
                 img.loading = 'lazy';
 
-                // ล้างข้อมูลเดิม (Icon) แล้วใส่รูปภาพแทน
                 container.innerHTML = '';
                 container.appendChild(img);
-                container.classList.add('loaded'); // ทำเครื่องหมายว่าโหลดแล้ว
-
+                container.classList.add('loaded');
             } catch (err) {
                 console.warn(`Could not load preview for ${fileUrl}: ${err.message}`);
-                // ถ้าโหลดไม่ขึ้น ก็ให้โชว์ Icon Placeholder เดิมต่อไป
             }
         }));
     },
@@ -377,15 +401,13 @@ const Actions = {
         containers.forEach(async (container) => {
             const fileUrl = container.dataset.fileUrl;
             try {
-                // 1. Fetch PDF พร้อม Token
                 const response = await fetch(fileUrl, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.arrayBuffer();
 
-                // 2. ใช้ PDF.js โหลดเอกสาร
                 const pdf = await State.pdfJS.getDocument({ data }).promise;
-                const page = await pdf.getPage(1); // ดึงหน้า 1
+                const page = await pdf.getPage(1);
 
                 // 3. เตรียม Canvas สำหรับวาดรูป
                 const viewport = page.getViewport({ scale: 0.3 }); // ปรับขนาดให้พอดี icon
@@ -418,13 +440,27 @@ const Actions = {
  * เริ่มทำงานเมื่อโหลดหน้าเว็บเสร็จ
  */
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. โหลดไอคอนวิชา
+    // 1. Init PDF.js (CDN 3.x exposes window.pdfjsLib)
+    if (window.pdfjsLib) {
+        State.pdfJS = window.pdfjsLib;
+        State.pdfJS.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    // 2. โหลดไอคอนวิชา
     try {
         const iconRes = await fetch('icons.json');
         if (iconRes.ok) State.subjectIcons = await iconRes.json();
     } catch (e) { console.warn("Icons not loaded"); }
 
-    // 2. ผูกปุ่มต่างๆ กับฟังก์ชัน
+    // 3. Modal close handlers
+    document.getElementById('previewCloseBtn').onclick = () => Actions.closePreview();
+    document.getElementById('previewModalBackdrop').onclick = () => Actions.closePreview();
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') Actions.closePreview();
+    });
+
+    // 4. ผูกปุ่มต่างๆ กับฟังก์ชัน
     if (UI.backBtn) UI.backBtn.onclick = () => UI.navigateBackTo(State.pathNames.length - 2);
     if (UI.downloadBtn) UI.downloadBtn.onclick = () => Actions.handleDownload();
 
