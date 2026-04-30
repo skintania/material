@@ -54,6 +54,73 @@ async function loadImageWithAuth(imgLink) {
 
 window.editingEventId = null;
 let currentUser = null;
+const creatorCache = {};
+
+async function fetchCreator(userId) {
+    if (userId == null) return null;
+    if (creatorCache[userId] !== undefined) return creatorCache[userId];
+    try {
+        const res = await apiFetch(`/users/${userId}`);
+        if (!res.ok) { creatorCache[userId] = null; return null; }
+        const { user } = await res.json();
+        creatorCache[userId] = user ?? null;
+        return creatorCache[userId];
+    } catch {
+        creatorCache[userId] = null;
+        return null;
+    }
+}
+
+async function fetchAvatarUrl(userId) {
+    try {
+        const res = await apiFetch(`/users/${userId}/avatar`);
+        if (!res.ok) return null;
+        return URL.createObjectURL(await res.blob());
+    } catch {
+        return null;
+    }
+}
+
+async function createCreatorHeader(ev) {
+    const creator = await fetchCreator(ev.creatorId);
+    const username = creator?.username || `user#${ev.creatorId}`;
+    const initial = username[0].toUpperCase();
+
+    const a = document.createElement('a');
+    a.href = '#'; // future: /profile/?id=${ev.creatorId}
+    a.className = 'creator-header';
+    a.title = 'ดูโปรไฟล์ (เร็วๆ นี้)';
+
+    const avatarWrap = document.createElement('div');
+    avatarWrap.className = 'creator-avatar-wrap';
+    avatarWrap.textContent = initial;
+
+    if (creator?.profile_url) {
+        const avatarUrl = await fetchAvatarUrl(ev.creatorId);
+        if (avatarUrl) {
+            const img = document.createElement('img');
+            img.src = avatarUrl;
+            img.alt = username;
+            avatarWrap.textContent = '';
+            avatarWrap.appendChild(img);
+        }
+    }
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'creator-name';
+    nameSpan.textContent = `@${username}`;
+
+    const role = creator?.role || 'member';
+    const roleLabel = role === 'admin' ? 'Admin' : role === 'OSK' ? 'OSK' : 'Member';
+    const roleBadge = document.createElement('span');
+    roleBadge.className = `creator-role-badge creator-role-badge--${role.toLowerCase()}`;
+    roleBadge.textContent = roleLabel;
+
+    a.appendChild(avatarWrap);
+    a.appendChild(nameSpan);
+    a.appendChild(roleBadge);
+    return a;
+}
 
 async function fetchCurrentUser() {
     try {
@@ -313,6 +380,8 @@ async function renderEvents(events, grid) {
         const canEdit   = isCreator;
         const canDelete = isCreator || isAdmin;
         if (canEdit || canDelete) card.appendChild(createOptionsMenu(ev.id, { canEdit, canDelete }));
+
+        card.appendChild(await createCreatorHeader(ev));
 
         const title = document.createElement('h2');
         title.innerText = ev.header || `กิจกรรม ${ev.id}`;

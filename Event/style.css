@@ -105,6 +105,76 @@ input[type="file"]::file-selector-button:hover { background: #3b82f6; color: whi
 .btn-cancel { background: transparent; border: 1px solid #334155; color: var(--muted); padding: 10px 20px; border-radius: 10px; cursor: pointer; }
 .btn-submit { background: #3b82f6; border: none; color: white; padding: 12px 25px; border-radius: 10px; font-weight: 600; cursor: pointer; flex-grow: 1; }
 
+/* --- Creator Header --- */
+.creator-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    margin-bottom: 14px;
+    color: inherit;
+    cursor: pointer;
+}
+
+.creator-avatar-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #60a5fa;
+}
+
+.creator-avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.creator-name {
+    font-size: 0.88rem;
+    color: #9aa4b2;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.creator-header:hover .creator-name {
+    color: #e6eef8;
+}
+
+.creator-role-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+}
+
+.creator-role-badge--admin {
+    background: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+    border: 1px solid rgba(236, 72, 153, 0.3);
+}
+
+.creator-role-badge--osk {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+    border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.creator-role-badge--member {
+    background: rgba(14, 165, 233, 0.15);
+    color: #0ea5e9;
+    border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
 .post-options-menu {
     position: absolute;
     top: 15px;
