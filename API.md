@@ -288,7 +288,7 @@ Get a user's public profile by ID.
 ---
 
 ### GET /users/search?q=&limit=20&offset=0
-Search users by name or username. Returns public profile only (no email, no ban status).
+Search users by name, username, or CU number (student ID). Returns public profile only (no email, no ban status).
 
 **Auth required**
 
@@ -649,7 +649,7 @@ List all users with full details (newest first).
 ---
 
 ### GET /admin/users/search?q=&limit=20&offset=0
-Search users — returns full details including email and ban status.
+Search users by name, username, email, CU number (student ID), or exact user ID. Returns full details including email, ban status, `student_id`, `osk_gen`, and `osk_id`.
 
 ---
 
