@@ -5,13 +5,9 @@
   <meta charset="utf-8">
   <meta name="description" content="คอร์สเรียนออนไลน์สำหรับ OSK CU Intania — Physics, Calculus, Material และอื่นๆ">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Skintania</title>
+  <title>Skintania — Courses</title>
 
-  <style>
-    body {
-      display: none
-    }
-  </style>
+  <style>body { display: none }</style>
 
   <script type="module" src="/auth-guard.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,29 +17,55 @@
   <link rel="stylesheet" href="/Template/style.css">
   <link rel="stylesheet" href="/Course/style.css">
   <link rel="icon" href="/Assest/sk-cu.png">
-  <script src="/Course/loadCourse.js" defer></script>
 
   <script type="module" src="/Template/component.js" defer></script>
-
+  <script type="module" src="/Course/loadCourse.js" defer></script>
 </head>
 
 <body>
-
   <comment-widget></comment-widget>
 
   <main class="wrap">
-    <site-header page-title="Home" page-desc="หน้าแรก">
-    </site-header>
+    <site-header page-title="Courses" page-desc="คอร์สเรียนทั้งหมด"></site-header>
 
-    <section id="coursesGrid" class="grid" aria-label="Courses">
-    </section>
+    <div class="courses-layout">
+
+      <!-- ── Toolbar + tag filter + grid ── -->
+      <div class="courses-main">
+        <div class="courses-toolbar">
+          <div class="search-box">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input id="courseSearch" type="text" placeholder="ค้นหาคอร์ส..." autocomplete="off">
+          </div>
+          <span id="courseCount" class="course-count"></span>
+        </div>
+
+        <!-- ── YouTube-style tag pills ── -->
+        <div id="tagList" class="tag-list">
+          <button class="tag-btn active" data-tag="all">ทั้งหมด</button>
+          <!-- dynamic tags injected by JS -->
+        </div>
+
+        <section id="coursesGrid" class="yt-grid" aria-label="Courses">
+          <div class="yt-skeleton"></div>
+          <div class="yt-skeleton"></div>
+          <div class="yt-skeleton"></div>
+          <div class="yt-skeleton"></div>
+        </section>
+
+        <p id="emptyState" class="empty-state" hidden>ไม่พบคอร์สที่ค้นหา</p>
+      </div>
+
+    </div>
 
     <footer>
       <p>เรื่องแจ้ง น่ารู้</p>
-      <ul>
-        <!-- <li>วิชา Material ดูคลิป Lecture 14 - 16 ได้ นอกจากนั้นกำลังอัปขึ้น Cloudflare</li> -->
-
-      </ul>
+      <ul></ul>
     </footer>
   </main>
 </body>
