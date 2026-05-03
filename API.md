@@ -68,6 +68,19 @@
   - [DELETE /courses/:courseId/files/:fileId](#delete-coursescourseidfilesfileid)
 - [Assets](#assets)
 - [SKDrive](#skdrive)
+- [Comments](#comments)
+  - [GET /courses/:courseId/comments](#get-coursescourseidcomments)
+  - [POST /courses/:courseId/comments](#post-coursescourseidcomments)
+  - [POST /courses/:courseId/comments/:commentId/reply](#post-coursescourseidcommentscommentidreply)
+  - [PATCH /courses/:courseId/comments/:commentId](#patch-coursescourseidcommentscommentid)
+  - [DELETE /courses/:courseId/comments/:commentId](#delete-coursescourseidcommentscommentid)
+- [Slides](#slides)
+  - [GET /courses/:courseId/slides](#get-coursescourseidslides)
+  - [POST /courses/:courseId/slides](#post-coursescourseidslides)
+  - [PATCH /courses/:courseId/slides/:slideId](#patch-coursescourseidsslidesslideid)
+  - [DELETE /courses/:courseId/slides/:slideId](#delete-coursescourseidslidesslideid)
+- [Ask AI](#ask-ai)
+  - [POST /courses/:courseId/ask-ai](#post-coursescourseidask-ai)
 - [Calculator](#calculator)
   - [POST /calculator](#post-calculator)
   - [GET /calculator/grades](#get-calculatorgrades)
@@ -698,7 +711,8 @@ Get the current runtime configuration.
     "RATE_LIMIT_REQUESTS": 100,
     "RATE_LIMIT_WINDOW_SECONDS": 60,
     "SKDRIVE_MAX_DOWNLOAD_MB": 50,
-    "REQUEST_LIMIT_PERDAY": 90000
+    "REQUEST_LIMIT_PERDAY": 90000,
+    "AI_ASK_DAILY_LIMIT": 20
   }
 }
 ```
@@ -722,7 +736,8 @@ Update one or more runtime config values. Changes are persisted to D1 and take e
   "RATE_LIMIT_REQUESTS": 100,
   "RATE_LIMIT_WINDOW_SECONDS": 60,
   "SKDRIVE_MAX_DOWNLOAD_MB": 50,
-  "REQUEST_LIMIT_PERDAY": 90000
+  "REQUEST_LIMIT_PERDAY": 90000,
+  "AI_ASK_DAILY_LIMIT": 20
 }
 ```
 
@@ -740,6 +755,7 @@ Update one or more runtime config values. Changes are persisted to D1 and take e
 | `RATE_LIMIT_WINDOW_SECONDS` | number | `60` | Rolling window size in seconds. |
 | `SKDRIVE_MAX_DOWNLOAD_MB` | number | `50` | Max total file size (MB) allowed for bulk SKDrive download. |
 | `REQUEST_LIMIT_PERDAY` | number | `90000` | Daily request threshold. Server auto-closes when this is reached; reopens at midnight via cron. |
+| `AI_ASK_DAILY_LIMIT` | number | `20` | Max Ask AI requests per user per day. |
 
 **Response 200**
 ```json
@@ -1111,6 +1127,207 @@ Content-Disposition: attachment; filename="Engineering Materials.zip"
 ```
 
 > Returns 400 if the total size exceeds `SKDRIVE_MAX_DOWNLOAD_MB` (default 50MB, configurable by admin via `PATCH /admin/config`).
+
+---
+
+## Comments
+
+Comments on a clip. Two-level only — replies to replies are rejected. All authenticated users can read and post; only the owner or admin can edit/delete.
+
+### GET /courses/:courseId/comments
+
+List all top-level comments for a clip, each with their replies nested inside.
+
+**Auth required**
+
+| Query param | Type | Description |
+|-------------|------|-------------|
+| `clip_key` | string | R2 key of the clip (required) |
+
+**Response 200**
+```json
+{
+  "success": true,
+  "comments": [
+    {
+      "id": 1, "course_id": 1, "clip_key": "material/Lecture1.mp4",
+      "user_id": 5, "parent_id": null, "content": "Great explanation!",
+      "username": "beams", "firstname": "Beam", "lastname": "S", "profile_url": null,
+      "created_at": "2026-05-03T10:00:00.000Z", "updated_at": "2026-05-03T10:00:00.000Z",
+      "replies": [
+        {
+          "id": 3, "parent_id": 1, "content": "Agreed!",
+          "username": "user2", "firstname": "Jane", "lastname": "D",
+          "created_at": "2026-05-03T10:05:00.000Z", "updated_at": "2026-05-03T10:05:00.000Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### POST /courses/:courseId/comments
+
+Post a top-level comment on a clip.
+
+**Auth required**
+
+**Body**
+```json
+{ "clip_key": "material/Lecture1.mp4", "content": "Great explanation!" }
+```
+
+**Response 201**
+```json
+{ "success": true, "message": "Comment posted", "id": 1 }
+```
+
+---
+
+### POST /courses/:courseId/comments/:commentId/reply
+
+Reply to an existing top-level comment. Returns 400 if the target comment is itself a reply.
+
+**Auth required**
+
+**Body**
+```json
+{ "content": "Agreed!" }
+```
+
+**Response 201**
+```json
+{ "success": true, "message": "Reply posted", "id": 3 }
+```
+
+---
+
+### PATCH /courses/:courseId/comments/:commentId
+
+Edit a comment. **Own comment only.**
+
+**Body**
+```json
+{ "content": "Updated text" }
+```
+
+---
+
+### DELETE /courses/:courseId/comments/:commentId
+
+Delete a comment. **Owner or admin.** Deleting a top-level comment also deletes all its replies.
+
+---
+
+## Slides
+
+Slide/document links attached to a clip. Each entry points to a SKDrive folder (type `folder`) or a specific file (type `file`).
+
+- **Read** — any authenticated user
+- **Write** — admin only
+
+### GET /courses/:courseId/slides
+
+List all slide entries for a clip, ordered by `sort_order`.
+
+**Auth required**
+
+| Query param | Type | Description |
+|-------------|------|-------------|
+| `clip_key` | string | R2 key of the clip (required) |
+
+**Response 200**
+```json
+{
+  "success": true,
+  "slides": [
+    { "id": 1, "course_id": 1, "clip_key": "material/Lecture1.mp4", "type": "folder", "skdrive_path": "Physics/L1/", "label": "Lecture Slides", "sort_order": 0, "created_at": "..." },
+    { "id": 2, "course_id": 1, "clip_key": "material/Lecture1.mp4", "type": "file",   "skdrive_path": "Physics/formula.pdf", "label": "Formula Sheet", "sort_order": 1, "created_at": "..." }
+  ]
+}
+```
+
+> For `type: "folder"` — use `skdrive_path` as the `prefix` param in `GET /skdrive?prefix=...` to list folder contents.
+> For `type: "file"` — use `skdrive_path` as the key in `GET /skdrive/<skdrive_path>` to download the file directly.
+
+---
+
+### POST /courses/:courseId/slides
+
+Add a folder or file link to a clip. **Admin only.**
+
+**Body**
+```json
+{ "clip_key": "material/Lecture1.mp4", "type": "folder", "skdrive_path": "Physics/L1/", "label": "Lecture Slides", "sort_order": 0 }
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `clip_key` | string | yes | R2 key of the clip |
+| `type` | string | yes | `"folder"` or `"file"` |
+| `skdrive_path` | string | yes | SKDrive prefix (folder) or key (file) |
+| `label` | string | yes | Display name |
+| `sort_order` | number | no | Display order (default 0) |
+
+**Response 201**
+```json
+{ "success": true, "message": "Slide added", "id": 1 }
+```
+
+---
+
+### PATCH /courses/:courseId/slides/:slideId
+
+Update a slide entry. **Admin only.**
+
+**Body** (all optional)
+```json
+{ "label": "Updated label", "skdrive_path": "Physics/L1-v2/", "sort_order": 2 }
+```
+
+---
+
+### DELETE /courses/:courseId/slides/:slideId
+
+Remove a slide entry. **Admin only.**
+
+---
+
+## Ask AI
+
+Ask Gemini 2.0 Flash a question about a captured video frame. The image is sent as a base64-encoded PNG.
+
+**Auth required** — subject to a per-user daily limit (default 20, configurable via `AI_ASK_DAILY_LIMIT`).
+
+### POST /courses/:courseId/ask-ai
+
+**Body**
+```json
+{ "image": "<base64 PNG>", "question": "What is this formula?" }
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `image` | string | yes | Base64-encoded PNG of the video frame |
+| `question` | string | no | Question to ask (defaults to a general explanation prompt) |
+
+**Response 200**
+```json
+{
+  "success": true,
+  "answer": "This shows Newton's second law: F = ma ...",
+  "usage": { "used": 3, "limit": 20 }
+}
+```
+
+**Response 429** — daily limit reached
+```json
+{ "success": false, "error": "Daily AI limit reached (20 asks/day). Try again tomorrow." }
+```
+
+> Requires `GEMINI_API_KEY` secret added to the Worker. Limit is configurable by admin via `PATCH /admin/config` with `AI_ASK_DAILY_LIMIT`.
 
 ---
 

@@ -170,41 +170,42 @@
 
           <!-- Tab: Comments -->
           <div class="tab-panel active" id="tab-comments" role="tabpanel">
-            <div class="tab-coming-soon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.18">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-              <p>ฟีเจอร์ความคิดเห็นกำลังพัฒนา</p>
-              <span class="coming-soon-badge">เร็วๆ นี้</span>
+            <div class="comment-form">
+              <div class="comment-input-row">
+                <div class="comment-avatar-sm" id="myAvatar">?</div>
+                <div class="comment-input-wrap">
+                  <textarea id="commentInput" class="comment-textarea" placeholder="แสดงความคิดเห็น..." rows="2"></textarea>
+                  <div class="comment-actions" id="commentActions" hidden>
+                    <button class="comment-cancel-btn" id="commentCancel">ยกเลิก</button>
+                    <button class="btn comment-submit-btn" id="commentSubmit">โพสต์</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="commentList" class="comment-list"></div>
+          </div>
+
+          <!-- Tab: Slides / Docs -->
+          <div class="tab-panel" id="tab-files" role="tabpanel">
+            <div id="slideList" class="slide-list">
+              <div class="tab-coming-soon"><p>เลือกคลิปเพื่อดูเอกสาร</p></div>
             </div>
           </div>
 
-          <!-- Tab: Files / Slides -->
-          <div class="tab-panel" id="tab-files" role="tabpanel">
-            <ul id="fileList" class="file-list tab-file-list">
-              <li class="tab-coming-soon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24"
-                  fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.18">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                </svg>
-                <p>ยังไม่มีเอกสารสำหรับคอร์สนี้</p>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Tab: Q&A -->
+          <!-- Tab: Ask AI -->
           <div class="tab-panel" id="tab-qa" role="tabpanel">
-            <div class="tab-coming-soon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.18">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-              </svg>
-              <p>ฟีเจอร์ถามตอบกำลังพัฒนา</p>
-              <span class="coming-soon-badge">เร็วๆ นี้</span>
+            <div class="ask-ai-panel">
+              <p class="ask-ai-hint">จับภาพจากวิดีโอแล้วถาม AI เกี่ยวกับเนื้อหาในภาพ</p>
+              <div class="ask-ai-frame-section">
+                <canvas id="aiCanvas" class="ai-canvas" hidden></canvas>
+                <button class="btn capture-btn" id="captureFrameBtn">📸 จับภาพจากวิดีโอ</button>
+              </div>
+              <textarea id="aiQuestion" class="ai-question-input" placeholder="ถามอะไรก็ได้... (ไม่จำเป็นต้องระบุ)" rows="3"></textarea>
+              <div class="ask-ai-bottom-row">
+                <button class="btn" id="askAiBtn">ถามเลย</button>
+                <span class="ai-usage" id="aiUsage"></span>
+              </div>
+              <div class="ai-answer-box" id="aiAnswer" hidden></div>
             </div>
           </div>
 
@@ -212,36 +213,40 @@
 
       </div><!-- /player-col -->
 
-      <!-- ── Right: playlist sidebar ── -->
-      <aside class="playlist-col">
+      <!-- ── Right: playlist + other courses ── -->
+      <div class="sidebar-col">
 
-        <div class="playlist-header" id="playlistHeader">
-          <div class="playlist-header-inner">
-            <p class="playlist-label">รายการเรียน</p>
-            <h2 class="playlist-title" id="playlistTitle">—</h2>
-            <p class="playlist-sub" id="playlistSub"></p>
+        <aside class="playlist-col">
+
+          <div class="playlist-header" id="playlistHeader">
+            <div class="playlist-header-inner">
+              <p class="playlist-label">รายการเรียน</p>
+              <h2 class="playlist-title" id="playlistTitle">—</h2>
+              <p class="playlist-sub" id="playlistSub"></p>
+            </div>
+          </div>
+
+          <ul id="clipList" class="clip-list">
+            <li class="clip-skeleton"></li>
+            <li class="clip-skeleton"></li>
+            <li class="clip-skeleton"></li>
+            <li class="clip-skeleton"></li>
+            <li class="clip-skeleton"></li>
+          </ul>
+
+          <p id="clipEmpty" class="clip-empty" hidden>ยังไม่มีคลิปในคอร์สนี้</p>
+          <button id="loadMoreBtn" class="btn load-more-btn" hidden>โหลดเพิ่ม</button>
+
+        </aside>
+
+        <!-- ── Other courses directly below playlist ── -->
+        <div class="other-courses-col" id="otherCoursesCol">
+          <p class="other-courses-label">คอร์สอื่นๆ</p>
+          <div id="otherCoursesList" class="other-courses-list">
+            <!-- populated by JS -->
           </div>
         </div>
 
-        <ul id="clipList" class="clip-list">
-          <li class="clip-skeleton"></li>
-          <li class="clip-skeleton"></li>
-          <li class="clip-skeleton"></li>
-          <li class="clip-skeleton"></li>
-          <li class="clip-skeleton"></li>
-        </ul>
-
-        <p id="clipEmpty" class="clip-empty" hidden>ยังไม่มีคลิปในคอร์สนี้</p>
-        <button id="loadMoreBtn" class="btn load-more-btn" hidden>โหลดเพิ่ม</button>
-
-      </aside>
-
-      <!-- ── Other courses (below the sticky playlist, outside the grid) ── -->
-      <div class="other-courses-col" id="otherCoursesCol">
-        <p class="other-courses-label">คอร์สอื่นๆ</p>
-        <div id="otherCoursesList" class="other-courses-list">
-          <!-- populated by JS -->
-        </div>
       </div>
 
     </div>
